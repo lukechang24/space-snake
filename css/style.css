@@ -1,0 +1,35 @@
+
+
+body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    position: fixed;
+}
+
+#game {
+    position: absolute;
+    left: 500px;
+}
+
+#map {
+    height: 497px;
+    width: 497px;
+    border: 1.5px solid black;
+    background-color: RGB(194, 178, 128)
+}
+
+#snake-head {
+    background-color: black;
+    position: absolute;
+    border: 1.5px solid grey;
+    height: 17px;
+    width: 17px;
+}
+
+#start, #score {
+    width: 500px;
+    display: flex;
+    justify-content: center;
+}
