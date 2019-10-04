@@ -1,35 +1,72 @@
-
+html {
+    font-family: 'Cuprum', sans-serif;
+    background-image: url("../images/space1ver.png");
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+}
 
 body {
     display: flex;
     flex-direction: column;
     height: 100%;
     width: 100%;
-    position: fixed;
+    align-items: center;
+    position: relative;
 }
 
 #game {
+    top: 100px;
     position: absolute;
-    left: 500px;
 }
 
 #map {
-    height: 497px;
-    width: 497px;
-    border: 1.5px solid black;
-    background-color: RGB(194, 178, 128)
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 500px;
+    width: 500px;
+    background-color: black;
 }
 
 #snake-head {
-    background-color: black;
+    background-color: red;
     position: absolute;
     border: 1.5px solid grey;
     height: 17px;
     width: 17px;
+    border-radius: 5px;
 }
 
 #start, #score {
+    font-size: 150%;
+    font-weight: bolder;
     width: 500px;
     display: flex;
     justify-content: center;
+    background-color: rgb(26, 26, 138);
+    color: white;
+}
+
+#title p {
+    font-size: 40px;
+    color: white;
+    background-color: rgb(24, 24, 160);
+}
+
+#high-score {
+    height: 80%;
+    width: 60%;
+    position: absolute;
+    display: flex;
+    justify-content: center;
+}
+
+#high-score p {
+    color: white;
+    height: 10%;
 }

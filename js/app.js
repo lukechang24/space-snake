@@ -1,3 +1,4 @@
+const html = document.querySelector("html");
 const map = document.getElementById("map")
 const head = document.getElementById("snake-head");
 let snake = [head];
@@ -18,15 +19,34 @@ let intervals = [];
 let currentFood;
 let currentHead;
 let headRect;
-let score = 0;
 let incrementScore;
-let scoreDiv = document.getElementById("score");
+let count = 0;
+let isPlaying;
+let scoreDiv = document.querySelector("#score p");
+let highScoreDiv = document.querySelector("#high-score p")
+let highScore = localStorage.getItem("highestScore");
+let score = 0;
+
+const moveBackground = setInterval(() => {
+    if(count % 2 === 0) {
+        html.style.backgroundImage = "url('images/space2ver.png')";
+    } else {
+        html.style.backgroundImage = "url('images/space1ver.png')";
+    }
+    count++;
+},1000)
 
 document.addEventListener("keydown", (e) => {
-    if(e.which === 13) {  
-        clearInterval(move);
-        renderScore();
-        score = 0;
+    if(isPlaying === true) {
+        return;
+    } else if(e.which === 32) {
+        startGame(e.which);
+        isPlaying = true;
+
+    }
+})
+function startGame(whichKey) {
+    if(whichKey=== 32) {  
         head.style.left = "0px";
         head.style.top = "0px";
         snake.forEach((snakeBody,i) => {
@@ -36,11 +56,15 @@ document.addEventListener("keydown", (e) => {
         })
         snake = [head]
         currentDirection = "right";
-        startMoving();
+        score = 0;
+        highScoreDiv.style.visibility = "hidden";
+        clearInterval(move);
         renderScore();
+        startMoving();
     }
-})
-
+}
+startGame();
+spawnFood();
 
 document.addEventListener("keydown", (e) => {
     if(e.which === 37 && currentDirection !== "right" && currentHeadPositionArr[1] !== previousHeadPositionArr[1]) {
@@ -84,14 +108,17 @@ function startMoving() {
         })
         currentHeadPositionArr = [head.style.left.split("p")[0], 
         head.style.top.split("p")[0]];
-    },60)
+    },75)
 }
 
 function spawnFood() {
     let newFood = document.createElement("div");
     newFood.id = "food";
     newFood.style.position = "absolute";
-    newFood.style.backgroundColor = "blue";
+    newFood.style.backgroundImage = "url('images/star2.png')";
+    newFood.style.backgroundSize = "cover";
+    newFood.style.backgroundRepeat = "no-repeat";
+    newFood.style.backgroundPosition = "center center";
     newFood.style.height = "20px";
     newFood.style.width = "20px";
     newFood.style.left = Math.round((Math.random()*(borderRect.right-borderRect.left-20))/20)*20 + "px";
@@ -104,7 +131,6 @@ function spawnFood() {
     })
     map.appendChild(newFood);
 }
-spawnFood();
 
 function removeFood() {
     let currentFood = document.getElementById("food");
@@ -118,6 +144,7 @@ function detectCollision() {
     headRect = document.getElementById("snake-head").getBoundingClientRect();
     if(hitFood()) {
         growSnake();
+        growSnake();
         removeFood();
         spawnFood();
         score += 100;
@@ -126,11 +153,21 @@ function detectCollision() {
     if(hitWall() || hitBody()) {
         clearInterval(move);
         clearInterval(incrementScore);
+        if(score > highScore) {
+            highScore = score;
+        }
+        localStorage.setItem("highestScore", highScore);
+        let data = localStorage.getItem("highestScore");
+        console.log(localStorage);
+        highScoreDiv.innerText = `HIGHSCORE: ${data}`
+        highScoreDiv.style.visibility = "visible";
+        isPlaying = false;
+        renderScore();
     }
 }
 
 function hitWall() {
-    if(headRect.top < 0 || headRect.bottom > borderRect.bottom || headRect.left < borderRect.left || headRect.right > borderRect.right) {
+    if(headRect.top < borderRect.top || headRect.bottom > borderRect.bottom || headRect.left < borderRect.left || headRect.right > borderRect.right) {
         return true; 
     }
 }
@@ -155,12 +192,16 @@ function hitFood() {
 
 function renderScore() {
     scoreDiv.innerText = `SCORE: ${score}`;
+    // if(score > highScore) {
+    //     highScoreDiv.innerText = `HIGHSCORE: ${data}`;
+    // }
 }
 function growSnake() {
     let newBlock = document.createElement("div");
     newBlock.className = "snake-body"
-    newBlock.style.backgroundColor = `${snake.length % 3 === 0 ? "black" : "red"}`
+    newBlock.style.backgroundColor = `${snake.length % 3 === 0 ? "red" : "green"}`
     newBlock.style.border = "1.5px solid black";
+    newBlock.style.borderRadius = "5px";
     newBlock.style.position = "absolute";
     newBlock.style.height = "17px";
     newBlock.style.width = "17px";
