@@ -58,6 +58,7 @@ body {
 
 #title {
     width: 600px;
+    height: 50px;
     display: flex;
     justify-content: center;
     font-size: 40px;

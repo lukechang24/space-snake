@@ -1,10 +1,11 @@
 const html = document.querySelector("html");
 const map = document.getElementById("map")
 const head = document.getElementById("snake-head");
-let snake = [head];
-const borderRect = map.getBoundingClientRect();
+let titleHeight = document.getElementById("title").offsetHeight;
+console.log(titleHeight);
 head.style.left = "0px";
 head.style.top = "0px";
+let snake = [head];
 let move;
 let speed = 75;
 let currentDirection;
@@ -30,9 +31,6 @@ let scoreDiv = document.querySelector("#score p");
 let highScoreDiv = document.querySelector("#high-score p")
 let highScore = localStorage.getItem("highestScore") ? localStorage.getItem("highestScore") : 0;
 let incrementScore;
-
-console.log(borderRect)
-console.log(map.offsetHeight + map.offsetTop)
 
 document.addEventListener("keydown", (e) => {
     if(isPlaying === true) {
@@ -178,7 +176,7 @@ function moveAsteroids() {
                 endGame();
             }
         })
-        if(asteroid.offsetTop+asteroid.offsetHeight > map.offsetTop+map.offsetHeight) {
+        if(asteroid.offsetTop+asteroid.offsetHeight > (map.offsetTop-50)+map.offsetHeight) {
             asteroid.parentElement.removeChild(asteroid);
             asteroids.shift();
         }
@@ -226,6 +224,29 @@ function spawnPowerUp() {
     },10000)
 }
 
+function applyPowerUp() {
+    let whichPowerUp = Math.floor(Math.random()*2);
+        poweredUp = true;
+        if(whichPowerUp === 0) {
+            speed = 50;
+            scoreMultiplier = 1.5;
+        } else {
+            speed = 125;
+            scoreMultiplier = 2;
+        }
+        powerUp.parentNode.removeChild(powerUp);
+        powerUp = null;
+        clearInterval(move);
+        startMoving();
+        returnToNormal = setTimeout(() => {
+            speed = 75;
+            scoreMultiplier = 1;
+            poweredUp = false;
+            clearInterval(move);
+            startMoving();
+        },10000)
+}
+
 function removePowerUp() {
     powerUp.parentNode.removeChild(powerUp);
     powerUp = null;
@@ -251,26 +272,7 @@ function detectCollision() {
     currentFood = document.getElementById("food");
     headRect = document.getElementById("snake-head").getBoundingClientRect();
     if(hitPowerUp()) {
-        let whichPowerUp = Math.floor(Math.random()*2);
-        poweredUp = true;
-        if(whichPowerUp === 0) {
-            speed = 50;
-            scoreMultiplier = 1.5;
-        } else {
-            speed = 125;
-            scoreMultiplier = 2;
-        }
-        powerUp.parentNode.removeChild(powerUp);
-        powerUp = null;
-        clearInterval(move);
-        startMoving();
-        returnToNormal = setTimeout(() => {
-            speed = 75;
-            scoreMultiplier = 1;
-            poweredUp = false;
-            clearInterval(move);
-            startMoving();
-        },10000)
+        applyPowerUp();
     }
     if(hitFood()) {
         growSnake();
@@ -286,7 +288,7 @@ function detectCollision() {
 }
 
 function hitWall() {
-    if(head.offsetTop < map.offsetTop || head.offsetTop+head.offsetHeight > map.offsetTop+map.offsetHeight || head.offsetLeft < map.offsetLeft || head.offsetLeft+head.offsetWidth > map.offsetLeft+map.offsetWidth) {
+    if(head.offsetTop < (map.offsetTop-titleHeight) || head.offsetTop+head.offsetHeight > (map.offsetTop-titleHeight)+map.offsetHeight || head.offsetLeft < map.offsetLeft || head.offsetLeft+head.offsetWidth > map.offsetLeft+map.offsetWidth) {
         return true; 
     }
 }
