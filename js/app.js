@@ -6,33 +6,33 @@ const borderRect = map.getBoundingClientRect();
 head.style.left = "0px";
 head.style.top = "0px";
 let move;
+let speed = 75;
 let currentDirection;
 let currentPosition;
 let previousPosition;
-let currentFood;
 let currentHead;
+
+let food;
+let powerUp;
+let powerUpInterval;
+let poweredUp = false;
+let returnToNormal;
 let asteroids = [];
 let asteroidInterval;
-let hit = false;
-let incrementScore;
+
 let count = 0;
 let isPlaying;
+let hit = false;
+
+let score = 0;
+let scoreMultiplier = 1;
 let scoreDiv = document.querySelector("#score p");
 let highScoreDiv = document.querySelector("#high-score p")
-let highScore = localStorage.getItem("highestScore");
-let score = 0;
+let highScore = localStorage.getItem("highestScore") ? localStorage.getItem("highestScore") : 0;
+let incrementScore;
 
 console.log(borderRect)
 console.log(map.offsetHeight + map.offsetTop)
-
-// const moveBackground = setInterval(() => {
-//     if(count % 2 === 0) {
-//         html.style.backgroundImage = "url('images/space2ver.png')";
-//     } else {
-//         html.style.backgroundImage = "url('images/space1ver.png')";
-//     }
-//     count++;
-// },1000)
 
 document.addEventListener("keydown", (e) => {
     if(isPlaying === true) {
@@ -54,13 +54,19 @@ function startGame(whichKey) {
         })
         snake = [head]
         currentDirection = "right";
+        poweredUp = false;
+        speed = 75;
         score = 0;
+        scoreMultiplier = 1;
         highScoreDiv.style.visibility = "hidden";
         clearInterval(move);
+        clearInterval(spawnPowerUp);
+        clearTimeout(returnToNormal)
         removeAsteroids();
         renderScore();
         startMoving();
         callDownAsteroids();
+        spawnPowerUp();
     }
 }
 startGame();
@@ -109,43 +115,43 @@ function startMoving() {
         })
         currentHeadPositionArr = [head.offsetLeft, 
         head.offsetTop];
-    },75)
+    }, speed)
 }
 
 function spawnFood() {
-    let newFood = document.createElement("div");
-    newFood.id = "food";
-    newFood.style.position = "absolute";
-    newFood.style.backgroundImage = "url('images/star2.png')";
-    newFood.style.backgroundSize = "cover";
-    newFood.style.backgroundRepeat = "no-repeat";
-    newFood.style.backgroundPosition = "center center";
-    newFood.style.height = "20px";
-    newFood.style.width = "20px";
-    newFood.style.left = Math.round((Math.random()*(map.offsetWidth-20))/20)*20 + "px";
-    newFood.style.top = Math.round((Math.random()*(map.offsetHeight-20))/20)*20 + "px";
+    food = document.createElement("div");
+    food.id = "food";
+    food.style.position = "absolute";
+    food.style.backgroundImage = "url('images/star2.png')";
+    food.style.backgroundSize = "cover";
+    food.style.backgroundRepeat = "no-repeat";
+    food.style.backgroundPosition = "center center";
+    food.style.height = "20px";
+    food.style.width = "20px";
+    food.style.left = Math.round((Math.random()*(map.offsetWidth-20))/20)*20 + "px";
+    food.style.top = Math.round((Math.random()*(map.offsetHeight-20))/20)*20 + "px";
     snake.forEach(snakeBlock => {
-        while(newFood.style.left === snakeBlock.style.left && newFood.style.top === snakeBlock.style.top) {
-            newFood.style.left = Math.round((Math.random()*(map.offsetWidth-20))/20)*20 + "px";
-            newFood.style.top = Math.round((Math.random()*(map.offsetHeight-20))/20)*20 + "px";
+        while(food.style.left === snakeBlock.style.left && food.style.top === snakeBlock.style.top) {
+            food.style.left = Math.round((Math.random()*(map.offsetWidth-20))/20)*20 + "px";
+            food.style.top = Math.round((Math.random()*(map.offsetHeight-20))/20)*20 + "px";
         }
     })
-    map.appendChild(newFood);
-    console.log(newFood.offsetTop)
+    map.appendChild(food);
 }
 
 function removeFood() {
-    let currentFood = document.getElementById("food");
-    currentFood.parentNode.removeChild(currentFood);
-    currentFood = null;
+    food.parentNode.removeChild(food);
+    food = null;
 }
 
-function makeAsteroids() {
+function createAsteroids() {
     let newAsteroid = document.createElement("div");
     newAsteroid.className = "asteroid";
-    newAsteroid.style.backgroundColor = "grey";
-    newAsteroid.style.border = "1.5px solid black";
+    newAsteroid.style.backgroundImage = "linear-gradient(red, grey, grey)";
+    newAsteroid.style.border = "1.5px solid red";
     newAsteroid.style.borderRadius = "5px";
+    // newAsteroid.style.borderTopLeftRadius = "10px";
+    // newAsteroid.style.borderTopRightRadiusus = "10px";
     newAsteroid.style.position = "absolute";
     newAsteroid.style.height = "17px";
     newAsteroid.style.width = "17px";
@@ -182,19 +188,46 @@ function moveAsteroids() {
 function callDownAsteroids() {
     let difficulty = 1;
     asteroidInterval = setInterval(() => {
-        difficulty = score > 2000 ? 3 : score > 1000 ? 2 : 1;
+        difficulty = score > 3000 ? 3 : score > 1500 ? 2 : 1;
         let chance = Math.random()*10+1;
         if(chance > 8 && asteroids.length < difficulty) {
-        makeAsteroids();
+        createAsteroids();
         }
         moveAsteroids();
-    },1000)
+    },1000);
+}
+
+function createPowerUp() {
+    powerUp = document.createElement("div");
+    powerUp.id = "power-up";
+    powerUp.style.backgroundImage = "linear-gradient(to right, red,orange,yellow,green,blue,purple)"
+    powerUp.style.borderRadius = "5px";
+    powerUp.style.position = "absolute";
+    powerUp.style.height = "20px";
+    powerUp.style.width = "20px";
+    powerUp.style.left = Math.round((Math.random()*(map.offsetWidth-20))/20)*20 + "px";
+    powerUp.style.top = Math.round((Math.random()*(map.offsetHeight-20))/20)*20 + "px";
+    snake.forEach(snakeBlock => {
+        while((powerUp.style.left === snakeBlock.style.left && powerUp.style.top === snakeBlock.style.top) || powerUp.style.left === food.style.left && powerUp.style.top === food.style.top) {
+            powerUp.style.left = Math.round((Math.random()*(map.offsetWidth-20))/20)*20 + "px";
+            powerUp.style.top = Math.round((Math.random()*(map.offsetHeight-20))/20)*20 + "px";
+        }
+    })
+    map.appendChild(powerUp);
+}
+createPowerUp();
+function spawnPowerUp() {
+    powerUpInterval = setInterval(() => {
+        if(powerUp === null && !poweredUp) {
+            createPowerUp();
+        }
+    },10000)
 }
 
 function growSnake() {
     let newBlock = document.createElement("div");
     newBlock.className = "snake-body"
-    newBlock.style.backgroundColor = `${snake.length % 3 === 0 ? "blueviolet" : "rgb(2, 14, 153)"}`
+    newBlock.style.backgroundColor = `${snake.length % 3 === 0 ? "rgb(27, 0, 88)" : "rgb(2, 14, 153)"}`
     newBlock.style.border = "1.5px solid black";
     newBlock.style.borderRadius = "5px";
     newBlock.style.position = "absolute";
@@ -210,12 +243,34 @@ function detectCollision() {
     currentHead = snake[0];
     currentFood = document.getElementById("food");
     headRect = document.getElementById("snake-head").getBoundingClientRect();
+    if(hitPowerUp()) {
+        let whichPowerUp = Math.floor(Math.random()*2);
+        poweredUp = true;
+        if(whichPowerUp === 0) {
+            speed = 50;
+            scoreMultiplier = 1.5;
+        } else {
+            speed = 125;
+            scoreMultiplier = 2;
+        }
+        powerUp.parentNode.removeChild(powerUp);
+        powerUp = null;
+        clearInterval(move);
+        startMoving();
+        returnToNormal = setTimeout(() => {
+            speed = 75;
+            scoreMultiplier = 1;
+            poweredUp = false;
+            clearInterval(move);
+            startMoving();
+        },10000)
+    }
     if(hitFood()) {
         growSnake();
         growSnake();
         removeFood();
         spawnFood();
-        score += 100;
+        score += 100*scoreMultiplier;
         renderScore();
     }
     if(hitWall() || hitBody() || hitAsteroid()) {
@@ -241,6 +296,12 @@ function hitBody() {
     return hit;
 }
 
+function hitFood() {
+    if(currentHead.style.left === currentFood.style.left && currentHead.style.top === currentFood.style.top) {
+        return true;
+    }
+}
+
 function hitAsteroid() {
     hit = false;
     asteroids.forEach(asteroid => {
@@ -251,9 +312,11 @@ function hitAsteroid() {
     return hit;
 }
 
-function hitFood() {
-    if(currentHead.style.left === currentFood.style.left && currentHead.style.top === currentFood.style.top) {
-        return true;
+function hitPowerUp() {
+    if(powerUp) {
+        if(head.offsetLeft === powerUp.offsetLeft && head.offsetTop === powerUp.offsetTop) {
+            return true;
+        }
     }
 }
 
