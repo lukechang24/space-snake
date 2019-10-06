@@ -65,12 +65,12 @@ function startGame(whichKey) {
         removeAsteroids();
         renderScore();
         startMoving();
+        spawnFood();
         callDownAsteroids();
         spawnPowerUp();
     }
 }
 startGame();
-spawnFood();
 
 document.addEventListener("keydown", (e) => {
     if(e.which === 37 && currentDirection !== "right" && currentHeadPositionArr[1] !== previousHeadPositionArr[1]) {
@@ -208,20 +208,27 @@ function createPowerUp() {
     powerUp.style.left = Math.round((Math.random()*(map.offsetWidth-20))/20)*20 + "px";
     powerUp.style.top = Math.round((Math.random()*(map.offsetHeight-20))/20)*20 + "px";
     snake.forEach(snakeBlock => {
-        while((powerUp.style.left === snakeBlock.style.left && powerUp.style.top === snakeBlock.style.top) || powerUp.style.left === food.style.left && powerUp.style.top === food.style.top) {
-            powerUp.style.left = Math.round((Math.random()*(map.offsetWidth-20))/20)*20 + "px";
-            powerUp.style.top = Math.round((Math.random()*(map.offsetHeight-20))/20)*20 + "px";
+        if(food) {
+            while((powerUp.style.left === snakeBlock.style.left && powerUp.style.top === snakeBlock.style.top) || powerUp.style.left === food.style.left && powerUp.style.top === food.style.top) {
+                powerUp.style.left = Math.round((Math.random()*(map.offsetWidth-20))/20)*20 + "px";
+                powerUp.style.top = Math.round((Math.random()*(map.offsetHeight-20))/20)*20 + "px";
+            }
         }
     })
     map.appendChild(powerUp);
 }
-createPowerUp();
+
 function spawnPowerUp() {
     powerUpInterval = setInterval(() => {
-        if(powerUp === null && !poweredUp) {
+        if(!powerUp && !poweredUp) {
             createPowerUp();
         }
     },10000)
+}
+
+function removePowerUp() {
+    powerUp.parentNode.removeChild(powerUp);
+    powerUp = null;
 }
 
 function growSnake() {
@@ -325,7 +332,12 @@ function renderScore() {
 }
 
 function endGame() {
+    if(powerUp) {
+        removePowerUp();
+    }
+    removeFood();
     clearInterval(move);
+    clearTimeout(returnToNormal);
     clearInterval(asteroidInterval);
     clearInterval(incrementScore);
     if(score > highScore) {
