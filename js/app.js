@@ -6,19 +6,14 @@ const borderRect = map.getBoundingClientRect();
 head.style.left = "0px";
 head.style.top = "0px";
 let move;
-let moveLeft;
-let moveUp;
-let moveRight;
-let moveDown;
 let currentDirection;
 let currentPosition;
 let previousPosition;
-let currentHeadPositionArr;
-let previousHeadPositionArr;
-let intervals = [];
 let currentFood;
 let currentHead;
-let headRect;
+let asteroids = [];
+let asteroidInterval;
+let hit = false;
 let incrementScore;
 let count = 0;
 let isPlaying;
@@ -27,14 +22,17 @@ let highScoreDiv = document.querySelector("#high-score p")
 let highScore = localStorage.getItem("highestScore");
 let score = 0;
 
-const moveBackground = setInterval(() => {
-    if(count % 2 === 0) {
-        html.style.backgroundImage = "url('images/space2ver.png')";
-    } else {
-        html.style.backgroundImage = "url('images/space1ver.png')";
-    }
-    count++;
-},1000)
+console.log(borderRect)
+console.log(map.offsetHeight + map.offsetTop)
+
+// const moveBackground = setInterval(() => {
+//     if(count % 2 === 0) {
+//         html.style.backgroundImage = "url('images/space2ver.png')";
+//     } else {
+//         html.style.backgroundImage = "url('images/space1ver.png')";
+//     }
+//     count++;
+// },1000)
 
 document.addEventListener("keydown", (e) => {
     if(isPlaying === true) {
@@ -49,9 +47,9 @@ function startGame(whichKey) {
     if(whichKey=== 32) {  
         head.style.left = "0px";
         head.style.top = "0px";
-        snake.forEach((snakeBody,i) => {
+        snake.forEach((snakeBlock,i) => {
             if(i !== 0) {
-                snakeBody.parentElement.removeChild(snakeBody);
+                snakeBlock.parentElement.removeChild(snakeBlock);
             }
         })
         snake = [head]
@@ -59,8 +57,10 @@ function startGame(whichKey) {
         score = 0;
         highScoreDiv.style.visibility = "hidden";
         clearInterval(move);
+        removeAsteroids();
         renderScore();
         startMoving();
+        callDownAsteroids();
     }
 }
 startGame();
@@ -83,21 +83,22 @@ document.addEventListener("keydown", (e) => {
 
 function startMoving() {
     move = setInterval(() => {
-        previousHeadPositionArr = [head.style.left.split("p")[0], head.style.top.split("p")[0]]
+        previousHeadPositionArr = [head.offsetLeft, head.offsetTop];
+
         snake.forEach((block ,i) => {
-            currentPosition = [block.style.left.split("p")[0], block.style.top.split("p")[0]];
+            currentPosition = [block.offsetLeft, block.offsetTop];
             if(i === 0) {
                 if(currentDirection === "left") {
-                    block.style.left = parseInt(currentPosition[0]) - 20 + "px";
+                    block.style.left = (currentPosition[0] - 20) + "px";
                 }
                 if(currentDirection === "up") {
-                    block.style.top = parseInt(currentPosition[1]) - 20 + "px";
+                    block.style.top = (currentPosition[1] - 20) + "px";
                 }
                 if(currentDirection === "right") {
-                    block.style.left = parseInt(currentPosition[0]) + 20 + "px";
+                    block.style.left = (currentPosition[0] + 20) + "px";
                 }
                 if(currentDirection === "down") {
-                    block.style.top = parseInt(currentPosition[1]) + 20 + "px";
+                    block.style.top = (currentPosition[1] + 20) + "px";
                 }
                 detectCollision();
             } else {
@@ -106,8 +107,8 @@ function startMoving() {
             }
             previousPosition = currentPosition;
         })
-        currentHeadPositionArr = [head.style.left.split("p")[0], 
-        head.style.top.split("p")[0]];
+        currentHeadPositionArr = [head.offsetLeft, 
+        head.offsetTop];
     },75)
 }
 
@@ -121,21 +122,88 @@ function spawnFood() {
     newFood.style.backgroundPosition = "center center";
     newFood.style.height = "20px";
     newFood.style.width = "20px";
-    newFood.style.left = Math.round((Math.random()*(borderRect.right-borderRect.left-20))/20)*20 + "px";
-    newFood.style.top = Math.round((Math.random()*(borderRect.bottom-borderRect.top-20))/20)*20 + "px";
+    newFood.style.left = Math.round((Math.random()*(map.offsetWidth-20))/20)*20 + "px";
+    newFood.style.top = Math.round((Math.random()*(map.offsetHeight-20))/20)*20 + "px";
     snake.forEach(snakeBlock => {
-        if(newFood.style.left === snakeBlock.style.left && newFood.style.top === snakeBlock.style.top) {
-            newFood.style.left = Math.round((Math.random()*(borderRect.right-borderRect.left-20))/20)*20 + "px";
-            newFood.style.top = Math.round((Math.random()*(borderRect.bottom-borderRect.top-20))/20)*20 + "px";
+        while(newFood.style.left === snakeBlock.style.left && newFood.style.top === snakeBlock.style.top) {
+            newFood.style.left = Math.round((Math.random()*(map.offsetWidth-20))/20)*20 + "px";
+            newFood.style.top = Math.round((Math.random()*(map.offsetHeight-20))/20)*20 + "px";
         }
     })
     map.appendChild(newFood);
+    console.log(newFood.offsetTop)
 }
 
 function removeFood() {
     let currentFood = document.getElementById("food");
     currentFood.parentNode.removeChild(currentFood);
     currentFood = null;
+}
+
+function makeAsteroids() {
+    let newAsteroid = document.createElement("div");
+    newAsteroid.className = "asteroid";
+    newAsteroid.style.backgroundColor = "grey";
+    newAsteroid.style.border = "1.5px solid black";
+    newAsteroid.style.borderRadius = "5px";
+    newAsteroid.style.position = "absolute";
+    newAsteroid.style.height = "17px";
+    newAsteroid.style.width = "17px";
+    newAsteroid.style.top = "-20px";
+    newAsteroid.style.zIndex = 1;
+    newAsteroid.style.left = Math.round((Math.random()*(map.offsetWidth-20))/20)*20 + "px";
+    asteroids.push(newAsteroid);
+    map.appendChild(newAsteroid);
+}
+
+function removeAsteroids() {
+    while (asteroids.length > 0) {
+        asteroids[0].parentNode.removeChild(asteroids[0]);
+        asteroids.shift();
+    }
+}
+
+function moveAsteroids() {
+    let asteroidsClone = [...asteroids];
+    asteroidsClone.forEach(asteroid => {
+        asteroid.style.top = (asteroid.offsetTop+20) + "px";
+        snake.forEach(snakeBody => {
+            if(asteroid.offsetTop === snakeBody.offsetTop && asteroid.offsetLeft == snakeBody.offsetLeft) {
+                endGame();
+            }
+        })
+        if(asteroid.offsetTop+asteroid.offsetHeight > map.offsetTop+map.offsetHeight) {
+            asteroid.parentElement.removeChild(asteroid);
+            asteroids.shift();
+        }
+    })
+}
+
+function callDownAsteroids() {
+    let difficulty = 1;
+    asteroidInterval = setInterval(() => {
+        difficulty = score > 2000 ? 3 : score > 1000 ? 2 : 1;
+        let chance = Math.random()*10+1;
+        if(chance > 8 && asteroids.length < difficulty) {
+        makeAsteroids();
+        }
+        moveAsteroids();
+    },1000)
+}
+
+function growSnake() {
+    let newBlock = document.createElement("div");
+    newBlock.className = "snake-body"
+    newBlock.style.backgroundColor = `${snake.length % 3 === 0 ? "blueviolet" : "rgb(2, 14, 153)"}`
+    newBlock.style.border = "1.5px solid black";
+    newBlock.style.borderRadius = "5px";
+    newBlock.style.position = "absolute";
+    newBlock.style.height = "17px";
+    newBlock.style.width = "17px";
+    map.appendChild(newBlock);
+    newBlock.style.left = currentPosition[0] + "px";
+    newBlock.style.top = currentPosition[1] + "px";
+    snake.push(newBlock)
 }
 
 function detectCollision() {
@@ -150,30 +218,19 @@ function detectCollision() {
         score += 100;
         renderScore();
     }
-    if(hitWall() || hitBody()) {
-        clearInterval(move);
-        clearInterval(incrementScore);
-        if(score > highScore) {
-            highScore = score;
-        }
-        localStorage.setItem("highestScore", highScore);
-        let data = localStorage.getItem("highestScore");
-        console.log(localStorage);
-        highScoreDiv.innerText = `HIGHSCORE: ${data}`
-        highScoreDiv.style.visibility = "visible";
-        isPlaying = false;
-        renderScore();
+    if(hitWall() || hitBody() || hitAsteroid()) {
+        endGame();
     }
 }
 
 function hitWall() {
-    if(headRect.top < borderRect.top || headRect.bottom > borderRect.bottom || headRect.left < borderRect.left || headRect.right > borderRect.right) {
+    if(head.offsetTop < map.offsetTop || head.offsetTop+head.offsetHeight > map.offsetTop+map.offsetHeight || head.offsetLeft < map.offsetLeft || head.offsetLeft+head.offsetWidth > map.offsetLeft+map.offsetWidth) {
         return true; 
     }
 }
 
 function hitBody() {
-    let hit = false;
+    hit = false;
     snake.forEach((snakeBlock, i) => {
         if(i !== 0) {
             if(currentHead.style.left === snakeBlock.style.left && currentHead.style.top === snakeBlock.style.top) {
@@ -181,6 +238,16 @@ function hitBody() {
             }
         }
     })    
+    return hit;
+}
+
+function hitAsteroid() {
+    hit = false;
+    asteroids.forEach(asteroid => {
+        if(asteroid.style.left === head.style.left && asteroid.style.top === head.style.top) {
+            hit = true;
+        }
+    })
     return hit;
 }
 
@@ -192,21 +259,20 @@ function hitFood() {
 
 function renderScore() {
     scoreDiv.innerText = `SCORE: ${score}`;
-    // if(score > highScore) {
-    //     highScoreDiv.innerText = `HIGHSCORE: ${data}`;
-    // }
 }
-function growSnake() {
-    let newBlock = document.createElement("div");
-    newBlock.className = "snake-body"
-    newBlock.style.backgroundColor = `${snake.length % 3 === 0 ? "red" : "green"}`
-    newBlock.style.border = "1.5px solid black";
-    newBlock.style.borderRadius = "5px";
-    newBlock.style.position = "absolute";
-    newBlock.style.height = "17px";
-    newBlock.style.width = "17px";
-    map.appendChild(newBlock);
-    newBlock.style.left = currentPosition[0] + "px";
-    newBlock.style.top = currentPosition[1] + "px";
-    snake.push(newBlock)
+
+function endGame() {
+    clearInterval(move);
+    clearInterval(asteroidInterval);
+    clearInterval(incrementScore);
+    if(score > highScore) {
+        highScore = score;
+    }
+    localStorage.setItem("highestScore", highScore);
+    let data = localStorage.getItem("highestScore");
+    console.log(localStorage);
+    highScoreDiv.innerText = `HIGHSCORE: ${data}`
+    highScoreDiv.style.visibility = "visible";
+    isPlaying = false;
+    renderScore();
 }
