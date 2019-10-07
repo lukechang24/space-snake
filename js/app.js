@@ -12,11 +12,12 @@ let currentDirection;
 let currentPosition;
 let previousPosition;
 let currentHead;
+let snakePattern;
 
 let food;
-let powerUp;
+let powerUp = null;
+let poweredUp = null;
 let powerUpInterval;
-let poweredUp = false;
 let returnToNormal;
 let asteroids = [];
 let asteroidInterval;
@@ -30,7 +31,6 @@ let scoreMultiplier = 1;
 let scoreDiv = document.querySelector("#score p");
 let highScoreDiv = document.querySelector("#high-score p")
 let highScore = localStorage.getItem("highestScore") ? localStorage.getItem("highestScore") : 0;
-let incrementScore;
 
 document.addEventListener("keydown", (e) => {
     if(isPlaying === true) {
@@ -52,14 +52,11 @@ function startGame(whichKey) {
         })
         snake = [head]
         currentDirection = "right";
-        poweredUp = false;
+        poweredUp = null;
         speed = 75;
         score = 0;
         scoreMultiplier = 1;
         highScoreDiv.style.visibility = "hidden";
-        clearInterval(move);
-        clearInterval(spawnPowerUp);
-        clearTimeout(returnToNormal)
         removeAsteroids();
         renderScore();
         startMoving();
@@ -221,24 +218,29 @@ function spawnPowerUp() {
         if(!powerUp && !poweredUp) {
             createPowerUp();
         }
-    },10000)
+    },15000)
 }
 
 function applyPowerUp() {
-    let whichPowerUp = Math.floor(Math.random()*2);
-        poweredUp = true;
-        if(whichPowerUp === 0) {
-            speed = 50;
-            scoreMultiplier = 1.5;
+    let randomNum = Math.floor(Math.random()*3);
+        if(randomNum === 0) {
+            poweredUp = "speed";
+            speedUpSnake();
+        } else if(randomNum === 1){
+            poweredUp = "slow";
+            slowDownSnake();
         } else {
-            speed = 125;
-            scoreMultiplier = 2;
+            poweredUp = "stop";
+            clearInterval(asteroidInterval);
         }
-        powerUp.parentNode.removeChild(powerUp);
-        powerUp = null;
         clearInterval(move);
         startMoving();
+        powerUp.parentNode.removeChild(powerUp);
+        powerUp = null;
         returnToNormal = setTimeout(() => {
+            if(!clearInterval(asteroidInterval)) {
+                callDownAsteroids();
+            }
             speed = 75;
             scoreMultiplier = 1;
             poweredUp = false;
@@ -247,24 +249,34 @@ function applyPowerUp() {
         },10000)
 }
 
+function speedUpSnake() {
+    speed = 50;
+    scoreMultiplier = 1.5;
+}
+
+function slowDownSnake() {
+    speed = 150;
+    scoreMultiplier = 2;
+}
+
 function removePowerUp() {
     powerUp.parentNode.removeChild(powerUp);
     powerUp = null;
 }
 
 function growSnake() {
-    let newBlock = document.createElement("div");
-    newBlock.className = "snake-body"
-    newBlock.style.backgroundColor = `${snake.length % 3 === 0 ? "rgb(27, 0, 88)" : "rgb(2, 14, 153)"}`
-    newBlock.style.border = "1.5px solid black";
-    newBlock.style.borderRadius = "5px";
-    newBlock.style.position = "absolute";
-    newBlock.style.height = "17px";
-    newBlock.style.width = "17px";
-    map.appendChild(newBlock);
-    newBlock.style.left = currentPosition[0] + "px";
-    newBlock.style.top = currentPosition[1] + "px";
-    snake.push(newBlock)
+    let newBody = document.createElement("div");
+    newBody.className = "snake-body";
+    newBody.style.backgroundColor = `${snake.length % 3 === 0 ? "rgb(27, 0, 88)" : "rgb(2, 14, 153)"}`
+    newBody.style.border = "1.5px solid black";
+    newBody.style.borderRadius = "5px";
+    newBody.style.position = "absolute";
+    newBody.style.height = "17px";
+    newBody.style.width = "17px";
+    map.appendChild(newBody);
+    newBody.style.left = currentPosition[0] + "px";
+    newBody.style.top = currentPosition[1] + "px";
+    snake.push(newBody)
 }
 
 function detectCollision() {
@@ -340,8 +352,8 @@ function endGame() {
     removeFood();
     clearInterval(move);
     clearTimeout(returnToNormal);
+    clearInterval(powerUpInterval);
     clearInterval(asteroidInterval);
-    clearInterval(incrementScore);
     if(score > highScore) {
         highScore = score;
     }
