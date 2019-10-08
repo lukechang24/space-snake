@@ -62,6 +62,7 @@ function startGame(whichKey) {
         startMoving();
         spawnFood();
         callDownAsteroids();
+        applySnakePattern();
         spawnPowerUp();
     }
 }
@@ -145,8 +146,6 @@ function createAsteroids() {
     newAsteroid.style.backgroundImage = "linear-gradient(red, grey, grey)";
     newAsteroid.style.border = "1.5px solid red";
     newAsteroid.style.borderRadius = "5px";
-    // newAsteroid.style.borderTopLeftRadius = "10px";
-    // newAsteroid.style.borderTopRightRadiusus = "10px";
     newAsteroid.style.position = "absolute";
     newAsteroid.style.height = "17px";
     newAsteroid.style.width = "17px";
@@ -173,7 +172,7 @@ function moveAsteroids() {
                 endGame();
             }
         })
-        if(asteroid.offsetTop+asteroid.offsetHeight > (map.offsetTop-50)+map.offsetHeight) {
+        if(asteroid.offsetTop+asteroid.offsetHeight > (map.offsetTop-titleHeight)+map.offsetHeight) {
             asteroid.parentElement.removeChild(asteroid);
             asteroids.shift();
         }
@@ -218,7 +217,7 @@ function spawnPowerUp() {
         if(!powerUp && !poweredUp) {
             createPowerUp();
         }
-    },15000)
+    },10000)
 }
 
 function applyPowerUp() {
@@ -231,8 +230,9 @@ function applyPowerUp() {
             slowDownSnake();
         } else {
             poweredUp = "stop";
-            clearInterval(asteroidInterval);
+            stopTime()
         }
+        displayPowerUpText();
         clearInterval(move);
         startMoving();
         powerUp.parentNode.removeChild(powerUp);
@@ -240,23 +240,28 @@ function applyPowerUp() {
         returnToNormal = setTimeout(() => {
             if(!clearInterval(asteroidInterval)) {
                 callDownAsteroids();
+                map.style.filter = "invert(0%)";
             }
             speed = 75;
             scoreMultiplier = 1;
             poweredUp = false;
+            applySnakePattern();
             clearInterval(move);
             startMoving();
         },10000)
 }
 
-function speedUpSnake() {
-    speed = 50;
-    scoreMultiplier = 1.5;
-}
-
-function slowDownSnake() {
-    speed = 150;
-    scoreMultiplier = 2;
+function displayPowerUpText() {
+    let powerUpText = document.createElement("div");
+    powerUpText.innerText = `${poweredUp === "speed" ? "SPEED UP (1.5X SCORE)" : poweredUp === "slow" ? "SLOWED (2x SCORE)" : "STOP TIME"}`;
+    powerUpText.style.position = "absolute";
+    powerUpText.style.color = "white";
+    powerUpText.style.left = snake[1].offsetLeft + "px";
+    powerUpText.style.top = snake[1].offsetTop-20 + "px";
+    map.appendChild(powerUpText);
+    const removePowerUpText = setTimeout(() => {
+        powerUpText.parentNode.removeChild(powerUpText)
+    },1500)
 }
 
 function removePowerUp() {
@@ -264,10 +269,48 @@ function removePowerUp() {
     powerUp = null;
 }
 
+function speedUpSnake() {
+    speed = 50;
+    scoreMultiplier = 1.5;
+    snake.forEach((block, i) => {
+        block.style.backgroundColor = `${i % 6 === 0 ? "purple" : i % 5 === 0 ? "blue" : i % 4 === 0 ? "green" : i % 3 === 0 ? "yellow" : i % 2 === 0 ? "orange" : "red"}`
+    })
+}
+
+function slowDownSnake() {
+    speed = 150;
+    scoreMultiplier = 2;
+    snake.forEach((block, i) => {
+        block.style.backgroundColor = "purple";
+    })
+}
+
+function stopTime() {
+    clearInterval(asteroidInterval);
+    map.style.filter = "invert(80%)";
+}
+
+function applySnakePattern() {
+    if(poweredUp === "speed") {
+        snake.forEach((block, i) => {
+            block.style.backgroundColor = `${i % 6 === 0 ? "purple" : i % 5 === 0 ? "blue" : i % 4 === 0 ? "green" : i % 3 === 0 ? "yellow" : i % 2 === 0 ? "orange" : "red"}`
+        })
+    } else if(poweredUp === "slow") {
+        snake.forEach((block, i) => {
+        block.style.backgroundColor = "purple";
+        })
+    } else {
+        snake.forEach((block, i) => {
+        block.style.backgroundColor = `${i % 3 === 0 ? "rgb(27, 0, 88)" : "rgb(2, 14, 153)"}`
+        })
+    }
+}
+
 function growSnake() {
     let newBody = document.createElement("div");
     newBody.className = "snake-body";
-    newBody.style.backgroundColor = `${snake.length % 3 === 0 ? "rgb(27, 0, 88)" : "rgb(2, 14, 153)"}`
+    // newBody.style.backgroundColor = `${snake.length % 3 === 0 ? "rgb(27, 0, 88)" : "rgb(2, 14, 153)"}`;
+    applySnakePattern();
     newBody.style.border = "1.5px solid black";
     newBody.style.borderRadius = "5px";
     newBody.style.position = "absolute";
@@ -354,6 +397,7 @@ function endGame() {
     clearTimeout(returnToNormal);
     clearInterval(powerUpInterval);
     clearInterval(asteroidInterval);
+    map.style.filter = "invert(0%)";
     if(score > highScore) {
         highScore = score;
     }
