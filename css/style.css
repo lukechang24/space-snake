@@ -38,15 +38,16 @@ body {
 }
 
 #snake-head {
-    background-color: rgb(2, 14, 153);
+    background-color: #00FFFF;
     position: absolute;
     border: 2px solid white;
     height: 16px;
     width: 16px;
     border-radius: 5px;
+    z-index: 1;
 }
 
-#start, #score, #title {
+#start, #score, #interface {
     font-size: 150%;
     font-weight: bolder;
     width: 100%;
@@ -56,13 +57,30 @@ body {
     color: white;
 }
 
-#title {
+#interface {
     width: 600px;
     height: 100px;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+}
+
+#title {
+    height: 50%;
     font-size: 40px;
     color: white;
+    text-align: center;
+}
+
+#powerUp-container {
+    width: 5%;
+    height: 30%;
+    /* background-color: white;
+    border: 1px solid white; */
+}
+
+#powerUp-img {
+    height: 100%;
 }
 
 #high-score {
@@ -71,7 +89,7 @@ body {
     position: absolute;
     display: flex;
     justify-content: center;
-    z-index: 2;
+    z-index: 3;
 }
 
 #high-score p {

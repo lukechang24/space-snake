@@ -1,13 +1,14 @@
 const html = document.querySelector("html");
 const map = document.getElementById("map")
 const head = document.getElementById("snake-head");
-let titleHeight = document.getElementById("title").offsetHeight;
-console.log(titleHeight);
+const interfaceHeight = document.getElementById("interface").offsetHeight;
+const powerUpStorage = document.getElementById("powerUp-img");
+console.log(interfaceHeight);
 head.style.left = "0px";
 head.style.top = "0px";
 let snake = [head];
 let move;
-let speed = 75;
+let speed;
 let currentDirection;
 let currentPosition;
 let previousPosition;
@@ -15,19 +16,30 @@ let currentHead;
 let snakePattern;
 
 let food;
-let powerUp = null;
-let poweredUp = null;
+let foodCount;
+
+let powerUp;
+let whichPowerUp;
+let poweredUp;
 let powerUpInterval;
+let firstPowerUpText = false;
 let returnToNormal;
+
+let warnings = [];
 let asteroids = [];
 let asteroidInterval;
 
-let count = 0;
-let isPlaying;
-let hit = false;
+let lasers = [];
+let laserInterval;
+let firstAmmoText = false;
+let ammo;
 
-let score = 0;
-let scoreMultiplier = 1;
+let difficulty;
+let isPlaying;
+let hit;
+
+let score;
+let scoreMultiplier;
 let scoreDiv = document.querySelector("#score p");
 let highScoreDiv = document.querySelector("#high-score p")
 let highScore = localStorage.getItem("highestScore") ? localStorage.getItem("highestScore") : 0;
@@ -55,15 +67,22 @@ function startGame(whichKey) {
         poweredUp = null;
         speed = 75;
         score = 0;
+        ammo = 0;
         scoreMultiplier = 1;
+        difficulty = 1;
+        hit = false;
+        difficulty = 1;
+        foodCount = 0;
+        poweredUp = null;
         highScoreDiv.style.visibility = "hidden";
+        powerUpStorage.src = "";
         removeAsteroids();
         renderScore();
         startMoving();
         spawnFood();
         callDownAsteroids();
         applySnakePattern();
-        spawnPowerUp();
+        moveLasers();
     }
 }
 startGame();
@@ -80,6 +99,14 @@ document.addEventListener("keydown", (e) => {
     }
     if(e.which === 40 && currentDirection !== "up" && currentHeadPositionArr[0] !== previousHeadPositionArr[0]) {
         currentDirection = "down";
+    }
+    if(e.which === 65 && whichPowerUp) {
+        applyPowerUp();
+    }
+    if(e.which === 83 && ammo !== 0) {
+        createLasers();
+        ammo--;
+        applySnakePattern();
     }
 })
 
@@ -124,15 +151,17 @@ function spawnFood() {
     food.style.backgroundPosition = "center center";
     food.style.height = "20px";
     food.style.width = "20px";
+    map.appendChild(food);
     food.style.left = Math.round((Math.random()*(map.offsetWidth-20))/20)*20 + "px";
     food.style.top = Math.round((Math.random()*(map.offsetHeight-20))/20)*20 + "px";
     snake.forEach(snakeBlock => {
-        while(food.style.left === snakeBlock.style.left && food.style.top === snakeBlock.style.top) {
-            food.style.left = Math.round((Math.random()*(map.offsetWidth-20))/20)*20 + "px";
-            food.style.top = Math.round((Math.random()*(map.offsetHeight-20))/20)*20 + "px";
+        if(food.offsetLeft === snakeBlock.offsetLeft && food.offsetTop === snakeBlock.offsetTop) {
+            // food.style.left = (food.offsetLeft+20) + "px";
+            food.style.left = `${food.offsetLeft > map.offsetWidth/2 ? food.offsetLeft-20 : food.offsetLeft+20}px`;
+            // food.style.top = Math.round((Math.random()*(map.offsetHeight-20))/20)*20 + "px";
+            food.style.top = `${food.offsetTop > map.offsetHeight/2 ? food.offsetTop-20 : food.offsetTop+20}px`;
         }
     })
-    map.appendChild(food);
 }
 
 function removeFood() {
@@ -141,19 +170,76 @@ function removeFood() {
 }
 
 function createAsteroids() {
+    let blink = 0;
+    let spawnTopOrBottom = parseInt(`${difficulty === 1 ? 0 : Math.floor(Math.random()*2)}`);
+    let randomPosition = Math.round((Math.random()*(map.offsetWidth-20))/20)*20 + "px";
+    let indicateAsteroid = document.createElement("img");
+    indicateAsteroid.src = "images/warning1.png";
+    indicateAsteroid.className = "warning";
+    map.appendChild(indicateAsteroid);
+    indicateAsteroid.style.height = "20px";
+    indicateAsteroid.style.width = "20px";
+    indicateAsteroid.style.position = "absolute";
+    indicateAsteroid.style.left = randomPosition;
+    indicateAsteroid.style.top = `${spawnTopOrBottom === 0 ? 0 : map.offsetHeight-indicateAsteroid.offsetHeight}px`;
+    warnings.push(indicateAsteroid)
     let newAsteroid = document.createElement("div");
-    newAsteroid.className = "asteroid";
-    newAsteroid.style.backgroundImage = "linear-gradient(red, grey, grey)";
+    newAsteroid.className = `${spawnTopOrBottom === 0 ? "asteroid-top" : "asteroid-bottom"}`;
+    newAsteroid.style.backgroundImage = `${spawnTopOrBottom === 0 ? "linear-gradient(red, grey, grey)" : "linear-gradient(grey, grey, red)"}`
     newAsteroid.style.border = "1.5px solid red";
     newAsteroid.style.borderRadius = "5px";
     newAsteroid.style.position = "absolute";
     newAsteroid.style.height = "17px";
     newAsteroid.style.width = "17px";
-    newAsteroid.style.top = "-20px";
-    newAsteroid.style.zIndex = 1;
-    newAsteroid.style.left = Math.round((Math.random()*(map.offsetWidth-20))/20)*20 + "px";
-    asteroids.push(newAsteroid);
-    map.appendChild(newAsteroid);
+    newAsteroid.style.zIndex = 2;
+    let warningSignal = setInterval(() => {
+        if(!isPlaying) {
+            indicateAsteroid.parentNode.removeChild(indicateAsteroid);
+            clearInterval(warningSignal);
+        }
+        if(blink === 5) {
+            indicateAsteroid.parentNode.removeChild(indicateAsteroid);
+            map.appendChild(newAsteroid);
+            newAsteroid.style.left = randomPosition;
+            newAsteroid.style.top = `${newAsteroid.className === "asteroid-top" ? 0 : (map.offsetHeight-newAsteroid.offsetHeight)}px`;
+            asteroids.push(newAsteroid);
+            clearInterval(warningSignal);
+        }
+        if(blink % 2 === 0) {
+            indicateAsteroid.style.visibility = "hidden";
+        } else {
+            indicateAsteroid.style.visibility = "visible";
+        }
+        blink++;
+    },500)
+}
+
+function moveAsteroids() {
+    let asteroidsClone = [...asteroids];
+    asteroidsClone.forEach(asteroid => {
+        asteroid.style.top = `${asteroid.className === "asteroid-top" ? (asteroid.offsetTop+20) : (asteroid.offsetTop-20)}px`;
+        snake.forEach(snakeBody => {
+            if(asteroid.offsetTop === snakeBody.offsetTop && asteroid.offsetLeft == snakeBody.offsetLeft) {
+                endGame();
+            }
+        })
+        if((asteroid.offsetTop+asteroid.offsetHeight > (map.offsetTop-interfaceHeight)+map.offsetHeight && asteroid.className === "asteroid-top") || (asteroid.offsetTop < (map.offsetTop-interfaceHeight) && asteroid.className === "asteroid-bottom")) {
+            asteroid.parentElement.removeChild(asteroid);
+            asteroids.shift();
+            warnings.shift();
+        }
+    })
+}
+
+function callDownAsteroids() {
+    asteroidInterval = setInterval(() => {
+        difficulty = score > 3000 ? 3 : score > 1500 ? 2 : 1;
+        // let chance = Math.random()*10+1;
+        if(warnings.length < difficulty) {
+        createAsteroids();
+        }
+        moveAsteroids();
+    },1000);
 }
 
 function removeAsteroids() {
@@ -163,32 +249,70 @@ function removeAsteroids() {
     }
 }
 
-function moveAsteroids() {
-    let asteroidsClone = [...asteroids];
-    asteroidsClone.forEach(asteroid => {
-        asteroid.style.top = (asteroid.offsetTop+20) + "px";
-        snake.forEach(snakeBody => {
-            if(asteroid.offsetTop === snakeBody.offsetTop && asteroid.offsetLeft == snakeBody.offsetLeft) {
-                endGame();
-            }
-        })
-        if(asteroid.offsetTop+asteroid.offsetHeight > (map.offsetTop-titleHeight)+map.offsetHeight) {
-            asteroid.parentElement.removeChild(asteroid);
-            asteroids.shift();
-        }
-    })
+function createLasers() {
+    let newLaser = document.createElement("div");
+    newLaser.className = `${currentDirection === "left" ? "laser-left" : currentDirection === "up" ? "laser-up" : currentDirection === "right" ? "laser-right" : "laser-down"}`;
+    newLaser.style.backgroundImage = `${(newLaser.className === "laser-up" || newLaser.className === "laser-down") ? "url('images/laser-vertical.png')" : "url('images/laser-horizantal.png')"}`;
+    newLaser.style.backgroundSize = "cover";
+    newLaser.style.backgroundRepeat = "no-repeat";
+    newLaser.style.backgroundPosition = "center center";
+    newLaser.style.height = "20px";
+    newLaser.style.width = "20px";
+    newLaser.style.position = "absolute";
+    newLaser.style.zIndex = 0;
+    map.appendChild(newLaser);
+    newLaser.style.left = head.offsetLeft+"px";
+    newLaser.style.top = head.offsetTop+"px";
+    lasers.push(newLaser);
 }
 
-function callDownAsteroids() {
-    let difficulty = 1;
-    asteroidInterval = setInterval(() => {
-        difficulty = score > 3000 ? 3 : score > 1500 ? 2 : 1;
-        let chance = Math.random()*10+1;
-        if(chance > 8 && asteroids.length < difficulty) {
-        createAsteroids();
-        }
-        moveAsteroids();
-    },1000);
+function moveLasers() {
+    laserInterval = setInterval(() => {
+        let lasersClone = [...lasers];
+        lasersClone.forEach((laser, i) => {
+            if(laser.className === "laser-left") {
+                laser.style.left = (laser.offsetLeft-20)+"px";
+            }
+            if(laser.className === "laser-right") {
+                laser.style.left = (laser.offsetLeft+20)+"px";
+            }
+            if(laser.className === "laser-up") {
+                laser.style.top = (laser.offsetTop-20)+"px";
+            }
+            if(laser.className === "laser-down") {
+                laser.style.top = (laser.offsetTop+20)+"px";
+            }
+            asteroids.forEach(asteroid => {
+                if(laser.offsetTop === asteroid.offsetTop && laser.offsetLeft === asteroid.offsetLeft) {
+                    laser.parentElement.removeChild(laser);
+                    lasers.splice(lasers.indexOf(laser), 1);
+                    asteroid.parentElement.removeChild(asteroid);
+                    asteroids.splice(asteroids.indexOf(asteroid), 1)
+                    warnings.shift();
+                    score += 50;
+                    renderScore();
+                }
+            })
+            if((laser.offsetLeft < map.offsetLeft && laser.className === "laser-left") || (laser.offsetLeft+laser.offsetWidth > (map.offsetLeft+map.offsetWidth) && laser.className === "laser-right") || (laser.offsetTop+laser.offsetHeight > (map.offsetTop-interfaceHeight)+map.offsetHeight && laser.className === "laser-down") || (laser.offsetTop < (map.offsetTop-interfaceHeight) && laser.className === "laser-up")) {
+                laser.parentElement.removeChild(laser);
+                lasers.splice(lasers.indexOf(laser), 1);
+            }
+        })
+    },30)
+}
+
+function displayAmmoText() {
+    let ammoText = document.createElement("div");
+    ammoText.innerText = `+1 LASER${!firstAmmoText ? " (PRESS 'S' TO SHOOT)" : ""}`;
+    ammoText.style.position = "absolute";
+    ammoText.style.color = "white";
+    ammoText.style.left = head.offsetLeft + "px";
+    ammoText.style.top = head.offsetTop-20 + "px";
+    map.appendChild(ammoText);
+    const removeammoText = setTimeout(() => {
+        ammoText.parentNode.removeChild(ammoText);
+    },1500);
+    firstAmmoText = true;
 }
 
 function createPowerUp() {
@@ -213,65 +337,73 @@ function createPowerUp() {
 }
 
 function spawnPowerUp() {
-    powerUpInterval = setInterval(() => {
-        if(!powerUp && !poweredUp) {
-            createPowerUp();
-        }
-    },10000)
+    if(!powerUp && !poweredUp && !whichPowerUp) {
+        createPowerUp();
+    }
+}
+
+function storePowerUp() {
+    let randomNum = Math.floor(Math.random()*3);
+    if(randomNum === 0) {
+        whichPowerUp = "speed";
+        powerUpStorage.src = "images/speed-up.png";
+    } else if(randomNum === 1){
+        whichPowerUp = "slow";
+        powerUpStorage.src = "images/slow-down.png";
+
+    } else {
+        whichPowerUp = "freeze";
+        powerUpStorage.src = "images/freeze-time.png";
+    }
+    displayPowerUpText();
+    removePowerUp();
 }
 
 function applyPowerUp() {
-    let randomNum = Math.floor(Math.random()*3);
-        if(randomNum === 0) {
-            poweredUp = "speed";
-            speedUpSnake();
-        } else if(randomNum === 1){
-            poweredUp = "slow";
-            slowDownSnake();
-        } else {
-            poweredUp = "stop";
-            stopTime()
+    if(whichPowerUp === "speed") {
+        speedUpSnake();
+    } else if(whichPowerUp === "slow"){
+        slowDownSnake();
+    } else if(whichPowerUp === "freeze"){
+        freezeTime()
+    }
+    clearInterval(move);
+    startMoving();
+    poweredUp = true;
+    returnToNormal = setTimeout(() => {
+        if(!clearInterval(asteroidInterval)) {
+            callDownAsteroids();
+            map.style.filter = "invert(0%)";
         }
-        displayPowerUpText();
+        speed = 75;
+        scoreMultiplier = 1;
+        poweredUp = false;
+        whichPowerUp = null;
+        powerUp = null;
+        powerUpStorage.src = "";
+        applySnakePattern();
         clearInterval(move);
         startMoving();
-        powerUp.parentNode.removeChild(powerUp);
-        powerUp = null;
-        returnToNormal = setTimeout(() => {
-            if(!clearInterval(asteroidInterval)) {
-                callDownAsteroids();
-                map.style.filter = "invert(0%)";
-            }
-            speed = 75;
-            scoreMultiplier = 1;
-            poweredUp = false;
-            applySnakePattern();
-            clearInterval(move);
-            startMoving();
-        },10000)
+    },10000)
 }
 
 function displayPowerUpText() {
     let powerUpText = document.createElement("div");
-    powerUpText.innerText = `${poweredUp === "speed" ? "SPEED UP (1.5X SCORE)" : poweredUp === "slow" ? "SLOWED (2x SCORE)" : "STOP TIME"}`;
+    powerUpText.innerText = `${whichPowerUp === "speed" ? "SPEED UP (2x SCORE)" : whichPowerUp === "slow" ? "SLOW DOWN" : "FREEZE TIME"}${!firstPowerUpText ? " (PRESS 'A' TO USE)" : ""}`;
     powerUpText.style.position = "absolute";
     powerUpText.style.color = "white";
-    powerUpText.style.left = snake[1].offsetLeft + "px";
-    powerUpText.style.top = snake[1].offsetTop-20 + "px";
+    powerUpText.style.left = head.offsetLeft + "px";
+    powerUpText.style.top = head.offsetTop-20 + "px";
     map.appendChild(powerUpText);
     const removePowerUpText = setTimeout(() => {
-        powerUpText.parentNode.removeChild(powerUpText)
-    },1500)
-}
-
-function removePowerUp() {
-    powerUp.parentNode.removeChild(powerUp);
-    powerUp = null;
+        powerUpText.parentNode.removeChild(powerUpText);
+    },1500);
+    firstPowerUpText = true;
 }
 
 function speedUpSnake() {
     speed = 50;
-    scoreMultiplier = 1.5;
+    scoreMultiplier = 2;
     snake.forEach((block, i) => {
         block.style.backgroundColor = `${i % 6 === 0 ? "purple" : i % 5 === 0 ? "blue" : i % 4 === 0 ? "green" : i % 3 === 0 ? "yellow" : i % 2 === 0 ? "orange" : "red"}`
     })
@@ -279,38 +411,43 @@ function speedUpSnake() {
 
 function slowDownSnake() {
     speed = 150;
-    scoreMultiplier = 2;
     snake.forEach((block, i) => {
         block.style.backgroundColor = "purple";
     })
 }
 
-function stopTime() {
+function freezeTime() {
     clearInterval(asteroidInterval);
     map.style.filter = "invert(80%)";
 }
 
+function removePowerUp() {
+    powerUp.parentNode.removeChild(powerUp);
+    powerUp = null;
+}
+
 function applySnakePattern() {
-    if(poweredUp === "speed") {
-        snake.forEach((block, i) => {
-            block.style.backgroundColor = `${i % 6 === 0 ? "purple" : i % 5 === 0 ? "blue" : i % 4 === 0 ? "green" : i % 3 === 0 ? "yellow" : i % 2 === 0 ? "orange" : "red"}`
-        })
-    } else if(poweredUp === "slow") {
-        snake.forEach((block, i) => {
-        block.style.backgroundColor = "purple";
-        })
-    } else {
-        snake.forEach((block, i) => {
-        block.style.backgroundColor = `${i % 3 === 0 ? "rgb(27, 0, 88)" : "rgb(2, 14, 153)"}`
-        })
-    }
+    snake.forEach((block,i) => {
+        if(i !== 0) {
+            if(i <= ammo) {
+                block.style.border = "1.5px solid yellow";
+            } else {
+                block.style.border = "1.5px solid black";
+            }
+        }
+        if(whichPowerUp === "speed" && poweredUp) {
+            block.style.backgroundColor = `${i % 6 === 0 ? "purple" : i % 5 === 0 ? "blue" : i % 4 === 0 ? "green" : i % 3 === 0 ? "yellow" : i % 2 === 0 ? "orange" : "red"}`;
+        } else if(whichPowerUp === "slow" && poweredUp) {
+            block.style.backgroundColor = "purple";
+        } else {
+            block.style.backgroundColor = `${i % 3 === 0 ? "#00FFFF" : "#00B2EE"}`
+        }
+    })
 }
 
 function growSnake() {
     let newBody = document.createElement("div");
     newBody.className = "snake-body";
-    // newBody.style.backgroundColor = `${snake.length % 3 === 0 ? "rgb(27, 0, 88)" : "rgb(2, 14, 153)"}`;
-    applySnakePattern();
     newBody.style.border = "1.5px solid black";
     newBody.style.borderRadius = "5px";
     newBody.style.position = "absolute";
@@ -319,7 +456,11 @@ function growSnake() {
     map.appendChild(newBody);
     newBody.style.left = currentPosition[0] + "px";
     newBody.style.top = currentPosition[1] + "px";
-    snake.push(newBody)
+    snake.push(newBody);
+    if(snake.length % 5 === 0) {
+        spawnPowerUp();
+    }
+    applySnakePattern();
 }
 
 function detectCollision() {
@@ -327,9 +468,16 @@ function detectCollision() {
     currentFood = document.getElementById("food");
     headRect = document.getElementById("snake-head").getBoundingClientRect();
     if(hitPowerUp()) {
-        applyPowerUp();
+        storePowerUp();
     }
     if(hitFood()) {
+        foodCount++;
+        if(foodCount % 2 === 0) {
+            if(!firstAmmoText){
+                displayAmmoText();
+            }
+            ammo++;
+        }
         growSnake();
         growSnake();
         removeFood();
@@ -343,7 +491,7 @@ function detectCollision() {
 }
 
 function hitWall() {
-    if(head.offsetTop < (map.offsetTop-titleHeight) || head.offsetTop+head.offsetHeight > (map.offsetTop-titleHeight)+map.offsetHeight || head.offsetLeft < map.offsetLeft || head.offsetLeft+head.offsetWidth > map.offsetLeft+map.offsetWidth) {
+    if(head.offsetTop < (map.offsetTop-interfaceHeight) || head.offsetTop+head.offsetHeight > (map.offsetTop-interfaceHeight)+map.offsetHeight || head.offsetLeft < map.offsetLeft || head.offsetLeft+head.offsetWidth > map.offsetLeft+map.offsetWidth) {
         return true; 
     }
 }
@@ -392,11 +540,15 @@ function endGame() {
     if(powerUp) {
         removePowerUp();
     }
+    poweredUp = false;
+    whichPowerUp = null;
+    warnings = [];
     removeFood();
     clearInterval(move);
     clearTimeout(returnToNormal);
     clearInterval(powerUpInterval);
     clearInterval(asteroidInterval);
+    clearInterval(laserInterval);
     map.style.filter = "invert(0%)";
     if(score > highScore) {
         highScore = score;
