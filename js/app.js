@@ -87,6 +87,15 @@ function showGame() {
     playAgainText.innerText = "PRESS SPACE TO START";
     head.style.left = "0px";
     head.style.top = "0px";
+    snake.forEach((snakeBlock,i) => {
+        if(i !== 0) {
+            snakeBlock.parentNode.removeChild(snakeBlock);
+        }
+    })
+    highScoreDiv.style.visibility = "hidden";
+    powerUpStorage.style.visibility = "hidden";
+    menuButton.style.visibility = "hidden";
+    removeAsteroids();
 }
 
 document.addEventListener("keydown", (e) => {
@@ -107,7 +116,7 @@ function startGame(whichKey) {
                 snakeBlock.parentNode.removeChild(snakeBlock);
             }
         })
-        snake = [head]
+        snake = [head];
         currentDirection = "right";
         poweredUp = null;
         speed = 75;
