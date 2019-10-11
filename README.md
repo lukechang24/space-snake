@@ -1,7 +1,7 @@
 # READ ME
 
 # SPACE SNAKE
-A game inspired by the classic nokia phone game "Snake", with power-ups, asteroids, and lasers.  
+A game inspired by the classic "Snake" game, with power-ups, asteroids, and lasers.  
 https://lukechang24.github.io/snake-game
 
 # Instructions
