@@ -1,16 +1,16 @@
 const map = document.getElementById("map")
 const head = document.getElementById("snake-head");
+const powerUpStorage = document.getElementById("powerUp");
 const powerUpImg = document.getElementById("powerUp-img");
-let onTitleScreen = true;
-let onInstructionScreen = false;
+const menuButton = document.getElementById("menu-button")
 const playButton = document.getElementById("playButton");
 const instructionButton = document.getElementById("instructionButton");
-
 const instructionScreen = document.getElementById("instruction-screen")
 const startScreen = document.getElementById("start-screen");
 const topScreen = document.getElementById("top-screen");
 const bottomScreen = document.getElementById("bottom-screen");
-const powerUpStorage = document.getElementById("powerUp");
+let onTitleScreen = true;
+let onInstructionScreen = false;
 
 let snake = [head];
 let move;
@@ -67,6 +67,11 @@ function backToStartScreen() {
     onInstructionScreen = false;
     startScreen.style.display = "flex";
     instructionScreen.style.display = "none";
+    onTitleScreen = true;
+    map.style.display = "none";
+    topScreen.style.display = "none";
+    bottomScreen.style.display = "none";
+    highScoreDiv.style.visibility = "hidden";
 }
 
 function showGame() {
@@ -115,7 +120,7 @@ function startGame(whichKey) {
         poweredUp = null;
         highScoreDiv.style.visibility = "hidden";
         powerUpStorage.style.visibility = "hidden";
-        
+        menuButton.style.visibility = "hidden";
         removeAsteroids();
         renderScore();
         startMoving();
@@ -561,7 +566,6 @@ function growSnake() {
     if(snake.length % 10 === 0) {
         spawnPowerUp();
     }
-    applySnakePattern();
 }
 
 function detectCollision() {
@@ -581,6 +585,7 @@ function detectCollision() {
         }
         growSnake();
         growSnake();
+        applySnakePattern();
         removeFood();
         spawnFood();
         score += 100*scoreMultiplier;
@@ -662,6 +667,8 @@ function endGame() {
     console.log(localStorage);
     highScoreDiv.innerText = `HIGHSCORE: ${data}`
     highScoreDiv.style.visibility = "visible";
+    menuButton.style.visibility = "visible";
+
     isPlaying = false;
     renderScore();
     gameOverSound.play();
