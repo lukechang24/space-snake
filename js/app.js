@@ -1,11 +1,17 @@
-const html = document.querySelector("html");
 const map = document.getElementById("map")
 const head = document.getElementById("snake-head");
-const interfaceHeight = document.getElementById("interface").offsetHeight;
-const powerUpStorage = document.getElementById("powerUp-img");
-console.log(interfaceHeight);
-head.style.left = "0px";
-head.style.top = "0px";
+const powerUpImg = document.getElementById("powerUp-img");
+let onTitleScreen = true;
+let onInstructionScreen = false;
+const playButton = document.getElementById("playButton");
+const instructionButton = document.getElementById("instructionButton");
+
+const instructionScreen = document.getElementById("instruction-screen")
+const startScreen = document.getElementById("start-screen");
+const topScreen = document.getElementById("top-screen");
+const bottomScreen = document.getElementById("bottom-screen");
+const powerUpStorage = document.getElementById("powerUp");
+
 let snake = [head];
 let move;
 let speed;
@@ -39,18 +45,43 @@ let firstAmmoText = false;
 let difficulty;
 let isPlaying;
 let hit;
+let stopMoving;
 
 let score;
 let scoreMultiplier;
 let scoreDiv = document.querySelector("#score p");
 let highScoreDiv = document.querySelector("#high-score p")
 let highScore = localStorage.getItem("highestScore") ? localStorage.getItem("highestScore") : 0;
+let interfaceHeight;
 
 let laserSound = new Audio("audio/laser-sound.wav");
 let gameOverSound = new Audio("audio/gameover-sound.wav")
 
+function showInstructions() {
+    onInstructionScreen = true;
+    startScreen.style.display = "none";
+    instructionScreen.style.display = "flex";
+}
+
+function backToStartScreen() {
+    onInstructionScreen = false;
+    startScreen.style.display = "flex";
+    instructionScreen.style.display = "none";
+}
+
+function showGame() {
+    startScreen.style.display = "none";
+    map.style.display = "flex";
+    topScreen.style.display = "flex";
+    bottomScreen.style.display = "flex";
+    onTitleScreen = false;
+    interfaceHeight = document.getElementById("top-screen").offsetHeight;
+    head.style.left = "0px";
+    head.style.top = "0px";
+}
+
 document.addEventListener("keydown", (e) => {
-    if(isPlaying) {
+    if(isPlaying || onTitleScreen || onInstructionScreen) {
         return;
     } else if(e.which === 32) {
         startGame(e.which);
@@ -76,13 +107,15 @@ function startGame(whichKey) {
         scoreMultiplier = 1;
         difficulty = 1;
         hit = false;
+        stopMoving = false;
         difficulty = 1;
         bossSpawned = false;
         foodCount = 0;
         whichPowerUp = null;
         poweredUp = null;
         highScoreDiv.style.visibility = "hidden";
-        powerUpStorage.src = "";
+        powerUpStorage.style.visibility = "hidden";
+        
         removeAsteroids();
         renderScore();
         startMoving();
@@ -92,7 +125,6 @@ function startGame(whichKey) {
         moveLasers();
     }
 }
-startGame();
 
 document.addEventListener("keydown", (e) => {
     if(!isPlaying) {
@@ -125,19 +157,24 @@ function startMoving() {
     move = setInterval(() => {
         previousHeadPositionArr = [head.offsetLeft, head.offsetTop];
 
-        snake.forEach((block ,i) => {
+        snake.some((block ,i) => {
             currentPosition = [block.offsetLeft, block.offsetTop];
             if(i === 0) {
-                if(currentDirection === "left") {
+                if(currentDirection === "left" && block.offsetLeft === 0 || currentDirection === "up" && block.offsetTop === 0 || currentDirection === "right" && block.offsetLeft+block.offsetWidth === map.offsetWidth || currentDirection === "down" && block.offsetTop+block.offsetHeight === map.offsetHeight) {
+                    applySnakePattern();
+                    endGame();
+                    stopMoving = true;
+                }
+                if(currentDirection === "left" && !stopMoving) {
                     block.style.left = (currentPosition[0] - 20) + "px";
                 }
-                if(currentDirection === "up") {
+                if(currentDirection === "up" && !stopMoving) {
                     block.style.top = (currentPosition[1] - 20) + "px";
                 }
-                if(currentDirection === "right") {
+                if(currentDirection === "right" && !stopMoving) {
                     block.style.left = (currentPosition[0] + 20) + "px";
                 }
-                if(currentDirection === "down") {
+                if(currentDirection === "down" && !stopMoving) {
                     block.style.top = (currentPosition[1] + 20) + "px";
                 }
                 detectCollision();
@@ -255,15 +292,18 @@ function moveAsteroids() {
 function callDownAsteroids() {
     asteroidInterval = setInterval(() => {
         let chanceToSpawn = Math.random()*10;
+        if(score > 3000) {
+            bossSpawned = false;
+        }
         difficulty = score > 2000 ? 3 : score > 1000 ? 2 : 1;
         if(chanceToSpawn > 6 && warnings.length < difficulty) {
-            let whichDir = 3;
+            let whichDir = Math.floor(Math.random()*4);
             let randomPosition = `${whichDir === 0 || whichDir === 1 ? Math.round((Math.random()*(map.offsetWidth-20))/20)*20 : Math.round((Math.random()*(map.offsetHeight-20))/20)*20}`;
-            if(score > 200 && !bossSpawned) {
+            if(score > 2000 && !bossSpawned) {
                 createBoss(whichDir);
                 return;
             }
-            createAsteroids(randomPosition, 3);
+            createAsteroids(randomPosition, whichDir);
         }
         moveAsteroids();
     },1000);
@@ -343,11 +383,12 @@ function moveLasers() {
 
 function displayAmmoText() {
     let ammoText = document.createElement("div");
-    ammoText.innerText = `+1 LASER${!firstAmmoText ? " (PRESS 'S' TO SHOOT)" : ""}`;
+    ammoText.innerText = `+1 AMMO ${!firstAmmoText ? "(PRESS 'S' TO SHOOT)" : ""}`;
     ammoText.style.position = "absolute";
     ammoText.style.color = "white";
     ammoText.style.left = head.offsetLeft + "px";
     ammoText.style.top = head.offsetTop-20 + "px";
+    ammoText.style.zIndex = 2;
     map.appendChild(ammoText);
     const removeammoText = setTimeout(() => {
         ammoText.parentNode.removeChild(ammoText);
@@ -390,26 +431,27 @@ function spawnPowerUp() {
 }
 
 function storePowerUp() {
+    powerUpStorage.style.visibility = "visible";
     let randomNum = Math.floor(Math.random()*3);
     if(randomNum === 0) {
-        whichPowerUp = "rapid-fire";
-        powerUpStorage.src = "images/speed-up.png";
+        whichPowerUp = "infinite-ammo";
+        powerUpImg.src = "images/infinite-ammo.png";
     } else if(randomNum === 1){
-        whichPowerUp = "slow";
-        powerUpStorage.src = "images/slow-down.png";
+        whichPowerUp = "decrease-speed";
+        powerUpImg.src = "images/decrease-speed.png";
 
     } else {
         whichPowerUp = "freeze";
-        powerUpStorage.src = "images/freeze-time.png";
+        powerUpImg.src = "images/freeze-time.png";
     }
     displayPowerUpText();
     removePowerUp();
 }
 
 function applyPowerUp() {
-    if(whichPowerUp === "rapid-fire") {
+    if(whichPowerUp === "infinite-ammo") {
         rapidFireSnake();
-    } else if(whichPowerUp === "slow"){
+    } else if(whichPowerUp === "decrease-speed"){
         slowDownSnake();
     } else if(whichPowerUp === "freeze"){
         freezeTime();
@@ -419,6 +461,7 @@ function applyPowerUp() {
     clearInterval(move);
     startMoving();
     poweredUp = true;
+    applySnakePattern();
     returnToNormal = setTimeout(() => {
         if(!clearInterval(asteroidInterval)) {
             callDownAsteroids();
@@ -426,13 +469,14 @@ function applyPowerUp() {
         }
         speed = 75;
         scoreMultiplier = 1;
-        if(whichPowerUp === "rapid-fire") {
+        if(whichPowerUp === "infinite-ammo") {
             ammo = currentAmmo;
         }
         poweredUp = false;
         whichPowerUp = null;
         powerUp = null;
-        powerUpStorage.src = "";
+        powerUpImg.src = "";
+        powerUpStorage.style.visibility = "hidden";
         applySnakePattern();
         clearInterval(move);
         startMoving();
@@ -441,11 +485,12 @@ function applyPowerUp() {
 
 function displayPowerUpText() {
     let powerUpText = document.createElement("div");
-    powerUpText.innerText = `${whichPowerUp === "rapid-fire" ? "RAPID FIRE (2x SCORE)" : whichPowerUp === "slow" ? "DECREASE SPEED" : "FREEZE TIME"}${!firstPowerUpText ? " (PRESS 'A' TO USE)" : ""}`;
+    powerUpText.innerText = `${whichPowerUp === "infinite-ammo" ? "INFINITE AMMO" : whichPowerUp === "decrease-speed" ? "DECREASE SPEED" : "FREEZE TIME"}${!firstPowerUpText ? " (PRESS 'A' TO USE)" : ""}`;
     powerUpText.style.position = "absolute";
     powerUpText.style.color = "white";
     powerUpText.style.left = head.offsetLeft + "px";
     powerUpText.style.top = head.offsetTop-20 + "px";
+    powerUpText.style.zIndex = 2;
     map.appendChild(powerUpText);
     const removePowerUpText = setTimeout(() => {
         powerUpText.parentNode.removeChild(powerUpText);
@@ -454,9 +499,7 @@ function displayPowerUpText() {
 }
 
 function rapidFireSnake() {
-    scoreMultiplier = 2;
     snake.forEach((block, i) => {
-        // block.style.backgroundColor = `${i % 6 === 0 ? "purple" : i % 5 === 0 ? "blue" : i % 4 === 0 ? "green" : i % 3 === 0 ? "yellow" : i % 2 === 0 ? "orange" : "red"}`;
         block.style.backgroundColor = "gold";
     })
     currentAmmo = ammo;
@@ -491,10 +534,10 @@ function applySnakePattern() {
                 block.style.backgroundColor = "red";
             }
         }
-        if(whichPowerUp === "rapid-fire" && poweredUp) {
+        if(whichPowerUp === "infinite-ammo" && poweredUp) {
             // block.style.backgroundColor = `${i % 6 === 0 ? "purple" : i % 5 === 0 ? "blue" : i % 4 === 0 ? "green" : i % 3 === 0 ? "yellow" : i % 2 === 0 ? "orange" : "red"}`;
             block.style.backgroundColor = "gold";
-        } else if(whichPowerUp === "slow" && poweredUp) {
+        } else if(whichPowerUp === "decrease-speed" && poweredUp) {
             block.style.backgroundColor = "purple";
         } else {
             // block.style.backgroundColor = `${block.style.backgroundColor === "yellow" ? "yellow" : i % 3 === 0 ? "#00FFFF" : "#00B2EE"}`
@@ -511,7 +554,6 @@ function growSnake() {
     newBody.style.position = "absolute";
     newBody.style.height = "17px";
     newBody.style.width = "17px";
-    applySnakePattern();
     map.appendChild(newBody);
     newBody.style.left = currentPosition[0] + "px";
     newBody.style.top = currentPosition[1] + "px";
@@ -519,6 +561,7 @@ function growSnake() {
     if(snake.length % 10 === 0) {
         spawnPowerUp();
     }
+    applySnakePattern();
 }
 
 function detectCollision() {

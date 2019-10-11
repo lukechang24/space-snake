@@ -6,11 +6,13 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title></title>
+        <title>SPACE SNAKE</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="css/style.css" type="text/css">
         <link href="https://fonts.googleapis.com/css?family=Cuprum&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Audiowide&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300&display=swap" rel="stylesheet">
     </head>
     <body>
         <!--[if lt IE 7]>
@@ -20,28 +22,57 @@
             SPACE SNAKE
         </div> -->
         <div id="game">
-                <div id="interface">
-                        <div id="title">
-                            SPACE SNAKE
-                        </div>
-                        <div id="powerUp-container">
-                            <img id="powerUp-img" src="">
+                <div id="top-screen">
+                        <div style="visibility: hidden" id="powerUp">
+                            <p id="powerUp-text">Power-Up:</p>
+                            <div id="powerUp-container"><img id="powerUp-img"></div>
                         </div>
                     </div>
             <div id="map">
                 <div id="high-score">
                     <p style="visibility: hidden">HIGHSCORE: </p>
                 </div>
+                <!-- <div id="play-again">
+                    <p >PLAY AGAIN </p>
+                </div> -->
                 <div id="snake-head"></div>
             </div>
             <div id="start-screen">
-
+                <div id="screen-title">
+                    SPACE SNAKE
+                    <button id="playButton" onclick="showGame()">PLAY</button>
+                    <button id="instructionButton" onclick="showInstructions()">INSTRUCTIONS</button>
+                </div>
             </div>
-            <div id="start">
-                <p>Hit Space to Start</p>
+            <div id=instruction-screen>
+                <div id="instructions">
+                    <div id="container1">
+                        <div id="container4">
+                            <div id=container5>
+                                <h1>ASTEROIDS</h1>
+                                <p>Asteroids will spawn from all directions. Shoot them down to score more points. Beware, as your score becomes higher, they will spawn quicker.</p>
+                            </div>
+                            <div id="container6">
+                                <h1>POWER-UPS</h1>
+                                <p id="power-up1">DECREASE SPEED<img style="width: 10%; margin-left: 5%"src="images/decrease-speed.png"></p>
+                                <p id="power-up2">INFINITE AMMO<img style="width: 10%; margin-left: 5%"src="images/infinite-ammo.png"></p>
+                                <p id="power-up3">FREEZE TIME<img style="width: 10%; margin-left: 5%"src="images/freeze-time.png"></p>
+                            </div>
+                        </div>
+                        <div id="container2">
+                            <div id="container3">
+                                <h1>HOW TO PLAY</h1>
+                                <p>Use the ← ↑ ↓ → keys to move your snake around the map. Try to collect as many stars as you can while dodging incoming asteroids. As you collect more stars, you will be able to convert them into lasers and shoot asteroids with the '<span style="color: red">S</span>' key (Your snake's body will store lasers as yellow blocks). Power-ups will spawn randomly, so use them to your advantage to survive as long as you can ('<span style="color: red">A</span>' to use power-up).</p>
+                            </div>
+                        </div>
+                        <button id="back" onclick="backToStartScreen()">BACK</button>
+                    </div>
+                </div>
             </div>
-            <div id="score">
-                <p>SCORE:</p>
+            <div id="bottom-screen">
+                <div id="score">
+                    <p>SCORE: 0</p>
+                </div>
             </div>
         </div>
         <script src="js/app.js" async defer></script>
