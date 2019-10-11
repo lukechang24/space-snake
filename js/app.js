@@ -2,7 +2,6 @@ const map = document.getElementById("map")
 const head = document.getElementById("snake-head");
 const powerUpStorage = document.getElementById("powerUp");
 const powerUpImg = document.getElementById("powerUp-img");
-const menuButton = document.getElementById("menu-button")
 const playButton = document.getElementById("playButton");
 const instructionButton = document.getElementById("instructionButton");
 const instructionScreen = document.getElementById("instruction-screen")
@@ -87,15 +86,6 @@ function showGame() {
     playAgainText.innerText = "PRESS SPACE TO START";
     head.style.left = "0px";
     head.style.top = "0px";
-    snake.forEach((snakeBlock,i) => {
-        if(i !== 0) {
-            snakeBlock.parentNode.removeChild(snakeBlock);
-        }
-    })
-    highScoreDiv.style.visibility = "hidden";
-    powerUpStorage.style.visibility = "hidden";
-    menuButton.style.visibility = "hidden";
-    removeAsteroids();
 }
 
 document.addEventListener("keydown", (e) => {
@@ -133,7 +123,6 @@ function startGame(whichKey) {
         poweredUp = null;
         highScoreDiv.style.visibility = "hidden";
         powerUpStorage.style.visibility = "hidden";
-        menuButton.style.visibility = "hidden";
         playAgainText.style.visibility = "hidden";
         removeAsteroids();
         renderScore();
@@ -677,7 +666,6 @@ function endGame() {
     playAgainText.innerText = "PRESS SPACE TO PLAY AGAIN";
     playAgainText.style.visibility = "visible";
     powerUpStorage.style.visibility = "hidden";
-    menuButton.style.visibility = "visible";
 
     isPlaying = false;
     renderScore();

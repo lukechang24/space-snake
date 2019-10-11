@@ -239,19 +239,6 @@ p {
     width: 100%;
 }
 
-#menu-div {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 80%;
-    width: 20%;
-}
-
-#menu-button {
-    height: 70%;
-    width: 60%;
-}
-
 #high-score, #play-again {
     height: 10%;
     width: 60%;
