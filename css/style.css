@@ -55,9 +55,17 @@ body {
 
 button {
     font-family: 'Audiowide', cursive;
-    background-color: white;
+    background-color: lightgray;
+    color: black;
     border: none;
     border-radius: 5px;
+}
+
+button:hover {
+    -webkit-transition-duration: 0.4s;
+    transition-duration: 0.4s;
+    background-color: white;
+    color: black;
 }
 
 #playButton, #instructionButton {
