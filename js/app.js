@@ -56,6 +56,8 @@ let interfaceHeight;
 
 let laserSound = new Audio("audio/laser-sound.wav");
 let gameOverSound = new Audio("audio/gameover-sound.wav")
+let eatingSound = new Audio("audio/eating-sound.wav")
+eatingSound.volume = 0.5;
 
 function showInstructions() {
     onInstructionScreen = true;
@@ -583,6 +585,7 @@ function detectCollision() {
             }
             ammo++;
         }
+        eatingSound.play();
         growSnake();
         growSnake();
         applySnakePattern();
