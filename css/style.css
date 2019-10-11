@@ -179,7 +179,8 @@ p {
     background-image: url("../images/background.PNG");
     position: relative;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    justify-content: space-around;
     align-items: center;
     height: 80%;
     width: 100%;
@@ -252,19 +253,18 @@ p {
 }
 
 #high-score, #play-again {
-    height: 30%;
+    height: 20%;
     width: 60%;
-    position: absolute;
     display: flex;
     justify-content: space-around;
-    align-items: center;
     z-index: 3;
 }
 
 #high-score p, #play-again p {
     color: white;
     height: 25%;
-    font-size: 150%;
+    font-size: 200%;
+    font-weight: bold;
 }
 
 #map, #top-screen, #bottom-screen {

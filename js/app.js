@@ -9,6 +9,7 @@ const instructionScreen = document.getElementById("instruction-screen")
 const startScreen = document.getElementById("start-screen");
 const topScreen = document.getElementById("top-screen");
 const bottomScreen = document.getElementById("bottom-screen");
+const playAgainText = document.querySelector("#play-again p");
 let onTitleScreen = true;
 let onInstructionScreen = false;
 
@@ -83,6 +84,7 @@ function showGame() {
     bottomScreen.style.display = "flex";
     onTitleScreen = false;
     interfaceHeight = document.getElementById("top-screen").offsetHeight;
+    playAgainText.innerText = "PRESS SPACE TO START";
     head.style.left = "0px";
     head.style.top = "0px";
 }
@@ -123,6 +125,7 @@ function startGame(whichKey) {
         highScoreDiv.style.visibility = "hidden";
         powerUpStorage.style.visibility = "hidden";
         menuButton.style.visibility = "hidden";
+        playAgainText.style.visibility = "hidden";
         removeAsteroids();
         renderScore();
         startMoving();
@@ -164,7 +167,7 @@ function startMoving() {
     move = setInterval(() => {
         previousHeadPositionArr = [head.offsetLeft, head.offsetTop];
 
-        snake.some((block ,i) => {
+        snake.forEach((block ,i) => {
             currentPosition = [block.offsetLeft, block.offsetTop];
             if(i === 0) {
                 if(currentDirection === "left" && block.offsetLeft === 0 || currentDirection === "up" && block.offsetTop === 0 || currentDirection === "right" && block.offsetLeft+block.offsetWidth === map.offsetWidth || currentDirection === "down" && block.offsetTop+block.offsetHeight === map.offsetHeight) {
@@ -299,9 +302,6 @@ function moveAsteroids() {
 function callDownAsteroids() {
     asteroidInterval = setInterval(() => {
         let chanceToSpawn = Math.random()*10;
-        if(score > 3000) {
-            bossSpawned = false;
-        }
         difficulty = score > 2000 ? 3 : score > 1000 ? 2 : 1;
         if(chanceToSpawn > 6 && warnings.length < difficulty) {
             let whichDir = Math.floor(Math.random()*4);
@@ -618,7 +618,7 @@ function hitBody() {
 }
 
 function hitFood() {
-    if(currentHead.style.left === currentFood.style.left && currentHead.style.top === currentFood.style.top) {
+    if(head.offsetLeft === currentFood.offsetLeft && head.offsetTop === currentFood.offsetTop) {
         return true;
     }
 }
@@ -670,6 +670,9 @@ function endGame() {
     console.log(localStorage);
     highScoreDiv.innerText = `HIGHSCORE: ${data}`
     highScoreDiv.style.visibility = "visible";
+    playAgainText.innerText = "PRESS SPACE TO PLAY AGAIN";
+    playAgainText.style.visibility = "visible";
+    powerUpStorage.style.visibility = "hidden";
     menuButton.style.visibility = "visible";
 
     isPlaying = false;
