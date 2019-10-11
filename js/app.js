@@ -214,9 +214,7 @@ function spawnFood() {
     food.style.top = Math.round((Math.random()*(map.offsetHeight-20))/20)*20 + "px";
     snake.forEach(snakeBlock => {
         if(food.offsetLeft === snakeBlock.offsetLeft && food.offsetTop === snakeBlock.offsetTop) {
-            // food.style.left = (food.offsetLeft+20) + "px";
             food.style.left = `${food.offsetLeft > map.offsetWidth/2 ? food.offsetLeft-20 : food.offsetLeft+20}px`;
-            // food.style.top = Math.round((Math.random()*(map.offsetHeight-20))/20)*20 + "px";
             food.style.top = `${food.offsetTop > map.offsetHeight/2 ? food.offsetTop-20 : food.offsetTop+20}px`;
         }
     })
@@ -236,7 +234,6 @@ function createAsteroids(pos, dir) {
     indicateAsteroid.style.height = "20px";
     indicateAsteroid.style.width = "20px";
     indicateAsteroid.style.position = "absolute";
-    // indicateAsteroid.style.left = pos;
     indicateAsteroid.style.left = `${dir === 2 ? 0 : dir === 3 ? map.offsetWidth-20 : pos}px`
     indicateAsteroid.style.top = `${dir === 0 ? 0 : dir === 1 ? map.offsetHeight-indicateAsteroid.offsetHeight : pos}px`;
     warnings.push(indicateAsteroid)
@@ -542,13 +539,11 @@ function applySnakePattern() {
             }
         }
         if(whichPowerUp === "infinite-ammo" && poweredUp) {
-            // block.style.backgroundColor = `${i % 6 === 0 ? "purple" : i % 5 === 0 ? "blue" : i % 4 === 0 ? "green" : i % 3 === 0 ? "yellow" : i % 2 === 0 ? "orange" : "red"}`;
             block.style.backgroundColor = "gold";
         } else if(whichPowerUp === "decrease-speed" && poweredUp) {
             block.style.backgroundColor = "purple";
         } else {
-            // block.style.backgroundColor = `${block.style.backgroundColor === "yellow" ? "yellow" : i % 3 === 0 ? "#00FFFF" : "#00B2EE"}`
-            block.style.backgroundColor = `${block.style.backgroundColor === "yellow" ? "yellow" : "#00B2EE"}`
+            block.style.backgroundColor = `${block.style.backgroundColor === "yellow" ? "yellow" : "#00B2EE"}`;
         }
     })
 }

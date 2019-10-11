@@ -253,7 +253,7 @@ p {
 }
 
 #high-score, #play-again {
-    height: 20%;
+    height: 10%;
     width: 60%;
     display: flex;
     justify-content: space-around;
@@ -261,9 +261,10 @@ p {
 }
 
 #high-score p, #play-again p {
+    font-family: 'Audiowide', cursive;
     color: white;
     height: 25%;
-    font-size: 200%;
+    font-size: 100%;
     font-weight: bold;
 }
 
