@@ -29,19 +29,21 @@
                         </div>
                     </div>
             <div id="map">
-                <div id="high-score">
-                    <p style="visibility: hidden">HIGHSCORE: </p>
-                </div>
-                <div id="play-again">
-                    <p>PRESS SPACE TO START</p>
+                <div style="visibility: hidden" id="death-screen">
+                    <div id="high-score">
+                        <p style="visibility: hidden">HIGHSCORE: </p>
+                    </div>
+                    <div id="play-again">
+                        <p>PRESS SPACE TO START</p>
+                    </div>
                 </div>
                 <div id="snake-head"></div>
             </div>
             <div id="start-screen">
                 <div id="screen-title">
                     SPACE SNAKE
-                    <button id="playButton" onclick="showGame()">PLAY</button>
-                    <button id="instructionButton" onclick="showInstructions()">INSTRUCTIONS</button>
+                    <button id="play-button">PLAY</button>
+                    <button id="instruction-button">INSTRUCTIONS</button>
                 </div>
             </div>
             <div id=instruction-screen>
@@ -65,7 +67,7 @@
                                 <p>Use the ← ↑ ↓ → keys to move your snake around the map. Try to collect as many stars as you can while dodging incoming asteroids. As you collect more stars, you will be able to convert them into lasers and shoot asteroids with the '<span style="color: red">S</span>' key (Your snake's body will store lasers as yellow blocks). Power-ups will spawn randomly, so use them to your advantage to survive as long as you can ('<span style="color: red">A</span>' to use power-up).</p>
                             </div>
                         </div>
-                        <button id="back" onclick="backToStartScreen()">BACK</button>
+                        <button id="back">BACK</button>
                     </div>
                 </div>
             </div>

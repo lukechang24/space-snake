@@ -2,13 +2,15 @@ const map = document.getElementById("map")
 const head = document.getElementById("snake-head");
 const powerUpStorage = document.getElementById("powerUp");
 const powerUpImg = document.getElementById("powerUp-img");
-const playButton = document.getElementById("playButton");
-const instructionButton = document.getElementById("instructionButton");
-const instructionScreen = document.getElementById("instruction-screen")
+const playButton = document.getElementById("play-button");
+const instructionButton = document.getElementById("instruction-button");
+const instructionScreen = document.getElementById("instruction-screen");
+const backButton = document.getElementById("back")
 const startScreen = document.getElementById("start-screen");
 const topScreen = document.getElementById("top-screen");
 const bottomScreen = document.getElementById("bottom-screen");
 const playAgainText = document.querySelector("#play-again p");
+const deathScreen = document.getElementById("death-screen")
 let onTitleScreen = true;
 let onInstructionScreen = false;
 
@@ -28,19 +30,20 @@ let powerUp;
 let whichPowerUp;
 let poweredUp;
 let powerUpInterval;
-let firstPowerUpText = false;
+// let firstPowerUpText = false;
 let returnToNormal;
 
 let warnings = [];
 let asteroids = [];
 let asteroidInterval;
+let asteroidSpeed;
 let bossSpawned;
 
 let lasers = [];
 let laserInterval;
 let ammo;
 let currentAmmo;
-let firstAmmoText = false;
+// let firstAmmoText = false;
 
 let difficulty;
 let isPlaying;
@@ -59,11 +62,9 @@ let gameOverSound = new Audio("audio/gameover-sound.wav")
 let eatingSound = new Audio("audio/eating-sound.wav")
 eatingSound.volume = 0.5;
 
-function showInstructions() {
-    onInstructionScreen = true;
-    startScreen.style.display = "none";
-    instructionScreen.style.display = "flex";
-}
+playButton.addEventListener("click", showGame);
+instructionButton.addEventListener("click", showInstructions);
+backButton.addEventListener("click", backToStartScreen);
 
 function backToStartScreen() {
     onInstructionScreen = false;
@@ -76,6 +77,13 @@ function backToStartScreen() {
     highScoreDiv.style.visibility = "hidden";
 }
 
+function showInstructions() {
+    onInstructionScreen = true;
+    startScreen.style.display = "none";
+    instructionScreen.style.display = "flex";
+}
+
+
 function showGame() {
     startScreen.style.display = "none";
     map.style.display = "flex";
@@ -84,19 +92,11 @@ function showGame() {
     onTitleScreen = false;
     interfaceHeight = document.getElementById("top-screen").offsetHeight;
     playAgainText.innerText = "PRESS SPACE TO START";
+    playAgainText.style.visibility = "visible";
     head.style.left = "0px";
     head.style.top = "0px";
 }
 
-document.addEventListener("keydown", (e) => {
-    if(isPlaying || onTitleScreen || onInstructionScreen) {
-        return;
-    } else if(e.which === 32) {
-        startGame(e.which);
-        isPlaying = true;
-
-    }
-})
 function startGame(whichKey) {
     if(whichKey=== 32) {  
         head.style.left = "0px";
@@ -108,15 +108,14 @@ function startGame(whichKey) {
         })
         snake = [head];
         currentDirection = "right";
-        poweredUp = null;
         speed = 75;
+        asteroidSpeed = 1000;
         score = 0;
         ammo = 0;
         scoreMultiplier = 1;
         difficulty = 1;
         hit = false;
         stopMoving = false;
-        difficulty = 1;
         bossSpawned = false;
         foodCount = 0;
         whichPowerUp = null;
@@ -124,6 +123,7 @@ function startGame(whichKey) {
         highScoreDiv.style.visibility = "hidden";
         powerUpStorage.style.visibility = "hidden";
         playAgainText.style.visibility = "hidden";
+        deathScreen.style.visibility = "hidden";
         removeAsteroids();
         renderScore();
         startMoving();
@@ -133,6 +133,16 @@ function startGame(whichKey) {
         moveLasers();
     }
 }
+
+document.addEventListener("keydown", (e) => {
+    if(isPlaying || onTitleScreen || onInstructionScreen) {
+        return;
+    } else if(e.which === 32) {
+        startGame(e.which);
+        isPlaying = true;
+
+    }
+})
 
 document.addEventListener("keydown", (e) => {
     if(!isPlaying) {
@@ -301,14 +311,15 @@ function callDownAsteroids() {
         if(chanceToSpawn > 6 && warnings.length < difficulty) {
             let whichDir = Math.floor(Math.random()*4);
             let randomPosition = `${whichDir === 0 || whichDir === 1 ? Math.round((Math.random()*(map.offsetWidth-20))/20)*20 : Math.round((Math.random()*(map.offsetHeight-20))/20)*20}`;
-            if(score > 2000 && !bossSpawned) {
+            if(score > 200 && !bossSpawned && warnings.length === 0) {
                 createBoss(whichDir);
                 return;
-            }
+            } else { 
             createAsteroids(randomPosition, whichDir);
+            }
         }
         moveAsteroids();
-    },1000);
+    }, asteroidSpeed);
 }
 
 function createBoss(dir) {
@@ -443,7 +454,7 @@ function storePowerUp() {
         powerUpImg.src = "images/decrease-speed.png";
 
     } else {
-        whichPowerUp = "freeze";
+        whichPowerUp = "freeze-time";
         powerUpImg.src = "images/freeze-time.png";
     }
     // displayPowerUpText();
@@ -455,7 +466,7 @@ function applyPowerUp() {
         rapidFireSnake();
     } else if(whichPowerUp === "decrease-speed"){
         slowDownSnake();
-    } else if(whichPowerUp === "freeze"){
+    } else if(whichPowerUp === "freeze-time"){
         freezeTime();
     } else {
         return;
@@ -468,6 +479,7 @@ function applyPowerUp() {
         if(!clearInterval(asteroidInterval)) {
             callDownAsteroids();
             map.style.filter = "invert(0%)";
+            map.style.backgroundImage = "url('images/background.PNG')";
         }
         speed = 75;
         scoreMultiplier = 1;
@@ -502,7 +514,9 @@ function applyPowerUp() {
 
 function rapidFireSnake() {
     snake.forEach((block, i) => {
-        block.style.backgroundColor = "gold";
+        if(i !== 0) {
+            block.style.backgroundColor = "gold";
+        }
     })
     currentAmmo = ammo;
     ammo = 1000;
@@ -511,12 +525,15 @@ function rapidFireSnake() {
 function slowDownSnake() {
     speed = 150;
     snake.forEach((block, i) => {
-        block.style.backgroundColor = "purple";
+        if(i !== 0) {
+            block.style.backgroundColor = `${block.style.backgroundColor === "yellow" ? "yellow" : "purple"}`;
+        }
     })
 }
 
 function freezeTime() {
     clearInterval(asteroidInterval);
+    map.style.backgroundImage = "none";
     map.style.filter = "invert(80%)";
 }
 
@@ -529,19 +546,17 @@ function applySnakePattern() {
     snake.forEach((block,i) => {
         if(i !== 0) {
             if(i <= ammo) {
-                block.style.border = "1.5px solid yellow";
                 block.style.backgroundColor = "yellow";
             } else {
-                block.style.border = "1.5px solid black";
                 block.style.backgroundColor = "red";
             }
-        }
-        if(whichPowerUp === "infinite-ammo" && poweredUp) {
-            block.style.backgroundColor = "gold";
-        } else if(whichPowerUp === "decrease-speed" && poweredUp) {
-            block.style.backgroundColor = "purple";
-        } else {
-            block.style.backgroundColor = `${block.style.backgroundColor === "yellow" ? "yellow" : "#00B2EE"}`;
+            if(whichPowerUp === "infinite-ammo" && poweredUp) {
+                block.style.backgroundColor = "gold";
+            } else if(whichPowerUp === "decrease-speed" && poweredUp) {
+                block.style.backgroundColor = `${block.style.backgroundColor === "yellow" ? "yellow" : "purple"}`;
+            } else if(i !== 0){
+                block.style.backgroundColor = `${block.style.backgroundColor === "yellow" ? "yellow" : "#add8e6"}`;
+            }
         }
     })
 }
@@ -549,11 +564,11 @@ function applySnakePattern() {
 function growSnake() {
     let newBody = document.createElement("div");
     newBody.className = "snake-body";
-    newBody.style.border = "1.5px solid black";
+    // newBody.style.border = "1.5px solid black";
     newBody.style.borderRadius = "5px";
     newBody.style.position = "absolute";
-    newBody.style.height = "17px";
-    newBody.style.width = "17px";
+    newBody.style.height = "20px";
+    newBody.style.width = "20px";
     map.appendChild(newBody);
     newBody.style.left = currentPosition[0] + "px";
     newBody.style.top = currentPosition[1] + "px";
@@ -655,18 +670,20 @@ function endGame() {
     clearInterval(asteroidInterval);
     clearInterval(laserInterval);
     map.style.filter = "invert(0%)";
+    map.style.backgroundImage = "url('images/background.PNG')";
     if(score > highScore) {
         highScore = score;
     }
     localStorage.setItem("highestScore", highScore);
     let data = localStorage.getItem("highestScore");
     console.log(localStorage);
+
     highScoreDiv.innerText = `HIGHSCORE: ${data}`
     highScoreDiv.style.visibility = "visible";
     playAgainText.innerText = "PRESS SPACE TO PLAY AGAIN";
     playAgainText.style.visibility = "visible";
+    deathScreen.style.visibility = "visible";
     powerUpStorage.style.visibility = "hidden";
-
     isPlaying = false;
     renderScore();
     gameOverSound.play();
