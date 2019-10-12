@@ -201,7 +201,7 @@ function spawnFood() {
     food = document.createElement("div");
     food.id = "food";
     food.style.position = "absolute";
-    food.style.backgroundImage = "url('images/star2.png')";
+    food.style.backgroundImage = "url('images/star1.png')";
     food.style.backgroundSize = "cover";
     food.style.backgroundRepeat = "no-repeat";
     food.style.backgroundPosition = "center center";
@@ -383,20 +383,20 @@ function moveLasers() {
     },30)
 }
 
-function displayAmmoText() {
-    let ammoText = document.createElement("div");
-    ammoText.innerText = `+1 AMMO ${!firstAmmoText ? "(PRESS 'S' TO SHOOT)" : ""}`;
-    ammoText.style.position = "absolute";
-    ammoText.style.color = "white";
-    ammoText.style.left = head.offsetLeft + "px";
-    ammoText.style.top = head.offsetTop-20 + "px";
-    ammoText.style.zIndex = 2;
-    map.appendChild(ammoText);
-    const removeammoText = setTimeout(() => {
-        ammoText.parentNode.removeChild(ammoText);
-    },1500);
-    firstAmmoText = true;
-}
+// function displayAmmoText() {
+//     let ammoText = document.createElement("div");
+//     ammoText.innerText = `+1 AMMO ${!firstAmmoText ? "(PRESS 'S' TO SHOOT)" : ""}`;
+//     ammoText.style.position = "absolute";
+//     ammoText.style.color = "white";
+//     ammoText.style.left = head.offsetLeft + "px";
+//     ammoText.style.top = head.offsetTop-20 + "px";
+//     ammoText.style.zIndex = 2;
+//     map.appendChild(ammoText);
+//     const removeammoText = setTimeout(() => {
+//         ammoText.parentNode.removeChild(ammoText);
+//     },1500);
+//     firstAmmoText = true;
+// }
 
 function removeLasers() {
     while(lasers.length > 0) {
@@ -446,7 +446,7 @@ function storePowerUp() {
         whichPowerUp = "freeze";
         powerUpImg.src = "images/freeze-time.png";
     }
-    displayPowerUpText();
+    // displayPowerUpText();
     removePowerUp();
 }
 
@@ -485,20 +485,20 @@ function applyPowerUp() {
     },10000)
 }
 
-function displayPowerUpText() {
-    let powerUpText = document.createElement("div");
-    powerUpText.innerText = `${whichPowerUp === "infinite-ammo" ? "INFINITE AMMO" : whichPowerUp === "decrease-speed" ? "DECREASE SPEED" : "FREEZE TIME"}${!firstPowerUpText ? " (PRESS 'A' TO USE)" : ""}`;
-    powerUpText.style.position = "absolute";
-    powerUpText.style.color = "white";
-    powerUpText.style.left = head.offsetLeft + "px";
-    powerUpText.style.top = head.offsetTop-20 + "px";
-    powerUpText.style.zIndex = 2;
-    map.appendChild(powerUpText);
-    const removePowerUpText = setTimeout(() => {
-        powerUpText.parentNode.removeChild(powerUpText);
-    },3000);
-    firstPowerUpText = true;
-}
+// function displayPowerUpText() {
+//     let powerUpText = document.createElement("div");
+//     powerUpText.innerText = `${whichPowerUp === "infinite-ammo" ? "INFINITE AMMO" : whichPowerUp === "decrease-speed" ? "DECREASE SPEED" : "FREEZE TIME"}${!firstPowerUpText ? " (PRESS 'A' TO USE)" : ""}`;
+//     powerUpText.style.position = "absolute";
+//     powerUpText.style.color = "white";
+//     powerUpText.style.left = head.offsetLeft + "px";
+//     powerUpText.style.top = head.offsetTop-20 + "px";
+//     powerUpText.style.zIndex = 2;
+//     map.appendChild(powerUpText);
+//     const removePowerUpText = setTimeout(() => {
+//         powerUpText.parentNode.removeChild(powerUpText);
+//     },3000);
+//     firstPowerUpText = true;
+// }
 
 function rapidFireSnake() {
     snake.forEach((block, i) => {
@@ -573,9 +573,9 @@ function detectCollision() {
     if(hitFood()) {
         foodCount++;
         if(foodCount % 2 === 0) {
-            if(!firstAmmoText){
-                displayAmmoText();
-            }
+            // if(!firstAmmoText){
+            //     displayAmmoText();
+            // }
             ammo++;
         }
         eatingSound.play();
