@@ -21,6 +21,8 @@ let currentDirection;
 let currentPosition;
 let previousPosition;
 let currentHead;
+let pauseText;
+let isPaused;
 let snakePattern;
 
 let food;
@@ -119,6 +121,7 @@ function resetVariables() {
     foodCount = 0;
     whichPowerUp = null;
     poweredUp = null;
+    isPaused = false;
 }
 
 function startGame(whichKey) {
@@ -150,6 +153,14 @@ document.addEventListener("keydown", (e) => {
 
 document.addEventListener("keydown", (e) => {
     if(!isPlaying) {
+        return;
+    }
+    if(e.which === 80 && isPaused) {
+        resumeGame();
+        return;
+    }
+    if(e.which === 80) {
+        pauseGame();
         return;
     }
     if(e.which === 37 && currentDirection !== "right" && currentHeadPositionArr[1] !== previousHeadPositionArr[1]) {
@@ -211,6 +222,28 @@ function startMoving() {
     }, speed)
 }
 
+function pauseGame() {
+    isPaused = true;
+    clearInterval(asteroidInterval);
+    clearInterval(move);
+    pauseText = document.createElement("div");
+    pauseText.style.position = "absolute";
+    pauseText.style.height = "10%";
+    pauseText.style.width = "80%";
+    pauseText.innerText = "PAUSED";
+    pauseText.style.fontSize = "150%";
+    pauseText.style.color = "white";
+    pauseText.style.textAlign = "center";
+    map.appendChild(pauseText);
+}
+
+function resumeGame() {
+    isPaused = false;
+    startMoving();
+    callDownAsteroids();
+    pauseText.parentNode.removeChild(pauseText);
+}
+
 function spawnFood() {
     food = document.createElement("div");
     food.id = "food";
@@ -262,6 +295,9 @@ function createAsteroids(pos, dir) {
         if(!isPlaying) {
             indicateAsteroid.parentNode.removeChild(indicateAsteroid);
             clearInterval(warningSignal);
+        }
+        if(isPaused) {
+            return;
         }
         if(blink === 5) {
             indicateAsteroid.parentNode.removeChild(indicateAsteroid);
