@@ -721,7 +721,6 @@ function endGame() {
     playAgainText.innerText = "PRESS SPACE TO PLAY AGAIN";
     playAgainText.style.visibility = "visible";
     deathScreen.style.visibility = "visible";
-    powerUpStorage.style.visibility = "hidden";
     isPlaying = false;
     renderScore();
     if(soundOn) {
