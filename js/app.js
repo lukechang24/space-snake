@@ -1,7 +1,5 @@
 const map = document.getElementById("map")
 const head = document.getElementById("snake-head");
-const powerUpStorage = document.getElementById("powerUp");
-const powerUpImg = document.getElementById("powerUp-img");
 const playButton = document.getElementById("play-button");
 const instructionButton = document.getElementById("instruction-button");
 const instructionScreen = document.getElementById("instruction-screen");
@@ -9,10 +7,22 @@ const backButton = document.getElementById("back")
 const startScreen = document.getElementById("start-screen");
 const topScreen = document.getElementById("top-screen");
 const bottomScreen = document.getElementById("bottom-screen");
+const powerUpStorage = document.getElementById("powerUp");
+const powerUpImg = document.getElementById("powerUp-img");
+const soundButton = document.querySelector("#sound button");
+const scoreDiv = document.querySelector("#score p");
+const highScoreDiv = document.querySelector("#high-score p")
 const playAgainText = document.querySelector("#play-again p");
-const deathScreen = document.getElementById("death-screen")
+const deathScreen = document.getElementById("death-screen");
 let onTitleScreen = true;
 let onInstructionScreen = false;
+
+let soundOn = true;
+const laserSound = new Audio("audio/laser-sound.wav");
+const eatingSound = new Audio("audio/eating-sound.wav");
+const powerUpSound = new Audio("audio/powerUp-sound.wav")
+const gameOverSound = new Audio("audio/gameover-sound.wav")
+eatingSound.volume = 0.3;
 
 let snake = [head];
 let move;
@@ -32,7 +42,6 @@ let powerUp;
 let whichPowerUp;
 let poweredUp;
 let powerUpInterval;
-// let firstPowerUpText = false;
 let returnToNormal;
 
 let warnings = [];
@@ -45,7 +54,6 @@ let lasers = [];
 let laserInterval;
 let ammo;
 let currentAmmo;
-// let firstAmmoText = false;
 
 let difficulty;
 let isPlaying;
@@ -54,15 +62,8 @@ let stopMoving;
 
 let score;
 let scoreMultiplier;
-let scoreDiv = document.querySelector("#score p");
-let highScoreDiv = document.querySelector("#high-score p")
 let highScore = localStorage.getItem("highestScore") ? localStorage.getItem("highestScore") : 0;
 let interfaceHeight;
-
-let laserSound = new Audio("audio/laser-sound.wav");
-let gameOverSound = new Audio("audio/gameover-sound.wav")
-let eatingSound = new Audio("audio/eating-sound.wav")
-eatingSound.volume = 0.3;
 
 playButton.addEventListener("click", showGame);
 instructionButton.addEventListener("click", showInstructions);
@@ -93,7 +94,6 @@ function showGame() {
     bottomScreen.style.display = "flex";
     onTitleScreen = false;
     interfaceHeight = document.getElementById("top-screen").offsetHeight;
-    playAgainText.innerText = "PRESS SPACE TO START";
     playAgainText.style.visibility = "visible";
     head.style.left = "0px";
     head.style.top = "0px";
@@ -128,7 +128,6 @@ function startGame(whichKey) {
     if(whichKey=== 32) {
         resetVariables();
         highScoreDiv.style.visibility = "hidden";
-        powerUpStorage.style.visibility = "hidden";
         playAgainText.style.visibility = "hidden";
         deathScreen.style.visibility = "hidden";
         removeAsteroids();
@@ -140,6 +139,16 @@ function startGame(whichKey) {
         moveLasers();
     }
 }
+
+soundButton.addEventListener("click", () => {
+    if(soundOn) {
+        soundButton.style.backgroundImage = "url('images/soundOff.png')";
+        soundOn = false;
+    } else {
+        soundButton.style.backgroundImage = "url('images/soundOn.png')";
+        soundOn = true;
+    }
+})
 
 document.addEventListener("keydown", (e) => {
     if(isPlaying || onTitleScreen || onInstructionScreen) {
@@ -179,7 +188,9 @@ document.addEventListener("keydown", (e) => {
         applyPowerUp();
     }
     if(e.which === 83 && ammo !== 0) {
-        laserSound.play();
+        if(soundOn) {
+            laserSound.play();
+        }
         createLasers();
         ammo--;
         applySnakePattern();
@@ -434,21 +445,6 @@ function moveLasers() {
     },30)
 }
 
-// function displayAmmoText() {
-//     let ammoText = document.createElement("div");
-//     ammoText.innerText = `+1 AMMO ${!firstAmmoText ? "(PRESS 'S' TO SHOOT)" : ""}`;
-//     ammoText.style.position = "absolute";
-//     ammoText.style.color = "white";
-//     ammoText.style.left = head.offsetLeft + "px";
-//     ammoText.style.top = head.offsetTop-20 + "px";
-//     ammoText.style.zIndex = 2;
-//     map.appendChild(ammoText);
-//     const removeammoText = setTimeout(() => {
-//         ammoText.parentNode.removeChild(ammoText);
-//     },1500);
-//     firstAmmoText = true;
-// }
-
 function removeLasers() {
     while(lasers.length > 0) {
         lasers[0].parentNode.removeChild(lasers[0]);
@@ -502,6 +498,9 @@ function storePowerUp() {
 }
 
 function applyPowerUp() {
+    if(soundOn) {
+        powerUpSound.play();
+    }
     if(whichPowerUp === "infinite-ammo") {
         rapidFireSnake();
     } else if(whichPowerUp === "decrease-speed"){
@@ -530,7 +529,6 @@ function applyPowerUp() {
         whichPowerUp = null;
         powerUp = null;
         powerUpImg.src = "";
-        powerUpStorage.style.visibility = "hidden";
         applySnakePattern();
         clearInterval(move);
         startMoving();
@@ -549,7 +547,6 @@ function displayPowerUpText() {
     const removePowerUpText = setTimeout(() => {
         powerUpText.parentNode.removeChild(powerUpText);
     },3000);
-    // firstPowerUpText = true;
 }
 
 function rapidFireSnake() {
@@ -604,7 +601,6 @@ function applySnakePattern() {
 function growSnake() {
     let newBody = document.createElement("div");
     newBody.className = "snake-body";
-    // newBody.style.border = "1.5px solid black";
     newBody.style.borderRadius = "5px";
     newBody.style.position = "absolute";
     newBody.style.height = "20px";
@@ -623,17 +619,19 @@ function detectCollision() {
     currentFood = document.getElementById("food");
     headRect = document.getElementById("snake-head").getBoundingClientRect();
     if(hitPowerUp()) {
+        if(soundOn) {
+            eatingSound.play();
+        }
         storePowerUp();
     }
     if(hitFood()) {
         foodCount++;
         if(foodCount % 2 === 0) {
-            // if(!firstAmmoText){
-            //     displayAmmoText();
-            // }
             ammo++;
         }
-        eatingSound.play();
+        if(soundOn) {
+            eatingSound.play();
+        }
         growSnake();
         growSnake();
         applySnakePattern();
@@ -726,5 +724,7 @@ function endGame() {
     powerUpStorage.style.visibility = "hidden";
     isPlaying = false;
     renderScore();
-    gameOverSound.play();
+    if(soundOn) {
+        gameOverSound.play();
+    }
 }
