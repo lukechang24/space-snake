@@ -60,7 +60,7 @@ let interfaceHeight;
 let laserSound = new Audio("audio/laser-sound.wav");
 let gameOverSound = new Audio("audio/gameover-sound.wav")
 let eatingSound = new Audio("audio/eating-sound.wav")
-eatingSound.volume = 0.5;
+eatingSound.volume = 0.3;
 
 playButton.addEventListener("click", showGame);
 instructionButton.addEventListener("click", showInstructions);
@@ -97,29 +97,33 @@ function showGame() {
     head.style.top = "0px";
 }
 
+function resetVariables() {
+    head.style.left = "0px";
+    head.style.top = "0px";
+    snake.forEach((snakeBlock,i) => {
+        if(i !== 0) {
+            snakeBlock.parentNode.removeChild(snakeBlock);
+        }
+    })
+    snake = [head];
+    currentDirection = "right";
+    speed = 75;
+    asteroidSpeed = 1000;
+    score = 0;
+    ammo = 0;
+    scoreMultiplier = 1;
+    difficulty = 1;
+    hit = false;
+    stopMoving = false;
+    bossSpawned = false;
+    foodCount = 0;
+    whichPowerUp = null;
+    poweredUp = null;
+}
+
 function startGame(whichKey) {
-    if(whichKey=== 32) {  
-        head.style.left = "0px";
-        head.style.top = "0px";
-        snake.forEach((snakeBlock,i) => {
-            if(i !== 0) {
-                snakeBlock.parentNode.removeChild(snakeBlock);
-            }
-        })
-        snake = [head];
-        currentDirection = "right";
-        speed = 75;
-        asteroidSpeed = 1000;
-        score = 0;
-        ammo = 0;
-        scoreMultiplier = 1;
-        difficulty = 1;
-        hit = false;
-        stopMoving = false;
-        bossSpawned = false;
-        foodCount = 0;
-        whichPowerUp = null;
-        poweredUp = null;
+    if(whichKey=== 32) {
+        resetVariables();
         highScoreDiv.style.visibility = "hidden";
         powerUpStorage.style.visibility = "hidden";
         playAgainText.style.visibility = "hidden";
@@ -457,7 +461,7 @@ function storePowerUp() {
         whichPowerUp = "freeze-time";
         powerUpImg.src = "images/freeze-time.png";
     }
-    // displayPowerUpText();
+    displayPowerUpText();
     removePowerUp();
 }
 
@@ -497,20 +501,20 @@ function applyPowerUp() {
     },10000)
 }
 
-// function displayPowerUpText() {
-//     let powerUpText = document.createElement("div");
-//     powerUpText.innerText = `${whichPowerUp === "infinite-ammo" ? "INFINITE AMMO" : whichPowerUp === "decrease-speed" ? "DECREASE SPEED" : "FREEZE TIME"}${!firstPowerUpText ? " (PRESS 'A' TO USE)" : ""}`;
-//     powerUpText.style.position = "absolute";
-//     powerUpText.style.color = "white";
-//     powerUpText.style.left = head.offsetLeft + "px";
-//     powerUpText.style.top = head.offsetTop-20 + "px";
-//     powerUpText.style.zIndex = 2;
-//     map.appendChild(powerUpText);
-//     const removePowerUpText = setTimeout(() => {
-//         powerUpText.parentNode.removeChild(powerUpText);
-//     },3000);
-//     firstPowerUpText = true;
-// }
+function displayPowerUpText() {
+    let powerUpText = document.createElement("div");
+    powerUpText.innerText = `${whichPowerUp === "infinite-ammo" ? "INFINITE AMMO" : whichPowerUp === "decrease-speed" ? "DECREASE SPEED" : "FREEZE TIME"}`;
+    powerUpText.style.position = "absolute";
+    powerUpText.style.color = "white";
+    powerUpText.style.left = head.offsetLeft + "px";
+    powerUpText.style.top = head.offsetTop-20 + "px";
+    powerUpText.style.zIndex = 2;
+    map.appendChild(powerUpText);
+    const removePowerUpText = setTimeout(() => {
+        powerUpText.parentNode.removeChild(powerUpText);
+    },3000);
+    // firstPowerUpText = true;
+}
 
 function rapidFireSnake() {
     snake.forEach((block, i) => {
