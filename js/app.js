@@ -142,9 +142,11 @@ function startGame(whichKey) {
 
 soundButton.addEventListener("click", () => {
     if(soundOn) {
+        soundButton.blur();
         soundButton.style.backgroundImage = "url('images/soundOff.png')";
         soundOn = false;
     } else {
+        soundButton.blur();
         soundButton.style.backgroundImage = "url('images/soundOn.png')";
         soundOn = true;
     }
@@ -362,7 +364,8 @@ function callDownAsteroids() {
         if(chanceToSpawn > 6 && warnings.length < difficulty) {
             let whichDir = Math.floor(Math.random()*4);
             let randomPosition = `${whichDir === 0 || whichDir === 1 ? Math.round((Math.random()*(map.offsetWidth-20))/20)*20 : Math.round((Math.random()*(map.offsetHeight-20))/20)*20}`;
-            if(score > 200 && !bossSpawned && warnings.length === 0) {
+            if(score > 1000 && !bossSpawned && warnings.length === 0) {
+                clearInterval(asteroidInterval);
                 createBoss(whichDir);
                 return;
             } else { 
@@ -455,13 +458,21 @@ function removeLasers() {
 function createPowerUp() {
     powerUp = document.createElement("div");
     powerUp.id = "power-up";
-    powerUp.style.backgroundImage = "linear-gradient(to right, red,orange,yellow,green,blue,purple)"
+    powerUp.style.backgroundImage = "linear-gradient(red, red, orange, orange, yellow)"
     powerUp.style.borderRadius = "5px";
     powerUp.style.position = "absolute";
     powerUp.style.height = "20px";
     powerUp.style.width = "20px";
+    powerUp.style.display = "flex";
+    powerUp.style.justifyContent = "center";
+    powerUp.style.alignItems = "center";
     powerUp.style.left = Math.round((Math.random()*(map.offsetWidth-20))/20)*20 + "px";
     powerUp.style.top = Math.round((Math.random()*(map.offsetHeight-20))/20)*20 + "px";
+    let powerUpP = document.createElement("img");
+    powerUp.appendChild(powerUpP);
+    powerUpP.src = "images/powerUp.png";
+    powerUpP.style.height = "80%";
+    powerUpP.style.width = "80%";
     snake.forEach(snakeBlock => {
         if(food) {
             while((powerUp.style.left === snakeBlock.style.left && powerUp.style.top === snakeBlock.style.top) || powerUp.style.left === food.style.left && powerUp.style.top === food.style.top) {
@@ -609,9 +620,6 @@ function growSnake() {
     newBody.style.left = currentPosition[0] + "px";
     newBody.style.top = currentPosition[1] + "px";
     snake.push(newBody);
-    if(snake.length % 10 === 0) {
-        spawnPowerUp();
-    }
 }
 
 function detectCollision() {
@@ -628,6 +636,9 @@ function detectCollision() {
         foodCount++;
         if(foodCount % 2 === 0) {
             ammo++;
+        }
+        if(foodCount % 10 === 0) {
+            spawnPowerUp();
         }
         if(soundOn) {
             eatingSound.play();
@@ -692,6 +703,7 @@ function renderScore() {
 }
 
 function endGame() {
+    applySnakePattern();
     if(powerUp) {
         removePowerUp();
     }
@@ -700,6 +712,7 @@ function endGame() {
     }
     poweredUp = false;
     whichPowerUp = null;
+    powerUpImg.src = "images/white.png";
     warnings = [];
     removeFood();
     clearInterval(move);
@@ -714,8 +727,6 @@ function endGame() {
     }
     localStorage.setItem("highestScore", highScore);
     let data = localStorage.getItem("highestScore");
-    console.log(localStorage);
-
     highScoreDiv.innerText = `HIGHSCORE: ${data}`
     highScoreDiv.style.visibility = "visible";
     playAgainText.innerText = "PRESS SPACE TO PLAY AGAIN";
