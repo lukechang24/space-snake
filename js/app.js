@@ -365,7 +365,6 @@ function callDownAsteroids() {
             let whichDir = Math.floor(Math.random()*4);
             let randomPosition = `${whichDir === 0 || whichDir === 1 ? Math.round((Math.random()*(map.offsetWidth-20))/20)*20 : Math.round((Math.random()*(map.offsetHeight-20))/20)*20}`;
             if(score > 1000 && !bossSpawned && warnings.length === 0) {
-                clearInterval(asteroidInterval);
                 createBoss(whichDir);
                 return;
             } else { 
@@ -539,7 +538,7 @@ function applyPowerUp() {
         poweredUp = false;
         whichPowerUp = null;
         powerUp = null;
-        powerUpImg.src = "";
+        powerUpImg.src = "images/white.png";
         applySnakePattern();
         clearInterval(move);
         startMoving();
