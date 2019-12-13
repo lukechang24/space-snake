@@ -2,7 +2,7 @@
 
 # SPACE SNAKE
 A game inspired by the classic "Snake" game, with power-ups, asteroids, and lasers.  
-https://lukechang24.github.io/snake-game
+https://lukechang24.github.io/space-snake
 
 # Instructions
 You maneuver your snake with the arrow keys, and can't move in the opposite direction of the way you're going.  
