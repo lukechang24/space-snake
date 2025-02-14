@@ -125,7 +125,7 @@ function resetVariables() {
 }
 
 function startGame(whichKey) {
-    if(whichKey=== 32) {
+    if(whichKey === "Space") {
         resetVariables();
         highScoreDiv.style.visibility = "hidden";
         playAgainText.style.visibility = "hidden";
@@ -155,8 +155,8 @@ soundButton.addEventListener("click", () => {
 document.addEventListener("keydown", (e) => {
     if(isPlaying || onTitleScreen || onInstructionScreen) {
         return;
-    } else if(e.which === 32) {
-        startGame(e.which);
+    } else if(e.code === "Space") {
+        startGame(e.code);
         isPlaying = true;
 
     }
@@ -166,30 +166,30 @@ document.addEventListener("keydown", (e) => {
     if(!isPlaying) {
         return;
     }
-    if(e.which === 80 && isPaused) {
+    if(e.code === 'KeyP' && isPaused) {
         resumeGame();
         return;
     }
-    if(e.which === 80) {
+    if(e.code === 'KeyP') {
         pauseGame();
         return;
     }
-    if(e.which === 37 && currentDirection !== "right" && currentHeadPositionArr[1] !== previousHeadPositionArr[1]) {
+    if(e.code === 'ArrowLeft' && currentDirection !== "right" && currentHeadPositionArr[1] !== previousHeadPositionArr[1]) {
         currentDirection = "left";
     }
-    if(e.which === 38 && currentDirection !== "down" && currentHeadPositionArr[0] !== previousHeadPositionArr[0]) {
+    if(e.code === 'ArrowUp' && currentDirection !== "down" && currentHeadPositionArr[0] !== previousHeadPositionArr[0]) {
         currentDirection = "up";
     }
-    if(e.which === 39 && currentDirection !== "left" && currentHeadPositionArr[1] !== previousHeadPositionArr[1]) {
+    if(e.code === 'ArrowRight' && currentDirection !== "left" && currentHeadPositionArr[1] !== previousHeadPositionArr[1]) {
         currentDirection = "right";
     }
-    if(e.which === 40 && currentDirection !== "up" && currentHeadPositionArr[0] !== previousHeadPositionArr[0]) {
+    if(e.code === 'ArrowDown' && currentDirection !== "up" && currentHeadPositionArr[0] !== previousHeadPositionArr[0]) {
         currentDirection = "down";
     }
-    if(e.which === 65 && whichPowerUp && !poweredUp) {
+    if(e.code === 'KeyA' && whichPowerUp && !poweredUp) {
         applyPowerUp();
     }
-    if(e.which === 83 && ammo !== 0) {
+    if(e.code === 'KeyS' && ammo !== 0) {
         if(soundOn) {
             laserSound.play();
         }
@@ -239,6 +239,7 @@ function pauseGame() {
     isPaused = true;
     clearInterval(asteroidInterval);
     clearInterval(move);
+    clearInterval(laserInterval);
     pauseText = document.createElement("div");
     pauseText.style.position = "absolute";
     pauseText.style.height = "10%";
@@ -254,6 +255,7 @@ function resumeGame() {
     isPaused = false;
     startMoving();
     callDownAsteroids();
+    moveLasers()
     pauseText.parentNode.removeChild(pauseText);
 }
 
@@ -284,6 +286,7 @@ function removeFood() {
 }
 
 function createAsteroids(pos, dir) {
+    console.log(pos, "THJIS")
     let blink = 0;
     let indicateAsteroid = document.createElement("img");
     indicateAsteroid.src = "images/warning2.png";
@@ -315,8 +318,8 @@ function createAsteroids(pos, dir) {
         if(blink === 5) {
             indicateAsteroid.parentNode.removeChild(indicateAsteroid);
             map.appendChild(newAsteroid);
-            newAsteroid.style.left = `${newAsteroid.className === "asteroid-left" ? 0 : newAsteroid.className === "asteroid-right" ? map.offsetWidth-newAsteroid.offsetWidth : pos}px`;
-            newAsteroid.style.top = `${newAsteroid.className === "asteroid-top" ? 0 : newAsteroid.className === "asteroid-bottom" ? (map.offsetHeight-newAsteroid.offsetHeight) : pos}px`;
+            newAsteroid.style.left = `${newAsteroid.className === "asteroid-left" ? 0 : newAsteroid.className === "asteroid-right" ? map.offsetWidth-20 : pos}px`;
+            newAsteroid.style.top = `${newAsteroid.className === "asteroid-top" ? 0 : newAsteroid.className === "asteroid-bottom" ? (map.offsetHeight-20) : pos}px`;
             asteroids.push(newAsteroid);
             clearInterval(warningSignal);
         }
@@ -344,6 +347,7 @@ function moveAsteroids() {
         if(asteroid.className === "asteroid-right") {
             asteroid.style.left = (asteroid.offsetLeft-20)+"px";
         }
+        console.log(asteroid.offsetLeft, asteroid.offsetTop)
         snake.forEach(snakeBody => {
             if(asteroid.offsetTop === snakeBody.offsetTop && asteroid.offsetLeft === snakeBody.offsetLeft) {
                 endGame();
