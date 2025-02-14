@@ -286,7 +286,6 @@ function removeFood() {
 }
 
 function createAsteroids(pos, dir) {
-    console.log(pos, "THJIS")
     let blink = 0;
     let indicateAsteroid = document.createElement("img");
     indicateAsteroid.src = "images/warning2.png";
@@ -347,7 +346,6 @@ function moveAsteroids() {
         if(asteroid.className === "asteroid-right") {
             asteroid.style.left = (asteroid.offsetLeft-20)+"px";
         }
-        console.log(asteroid.offsetLeft, asteroid.offsetTop)
         snake.forEach(snakeBody => {
             if(asteroid.offsetTop === snakeBody.offsetTop && asteroid.offsetLeft === snakeBody.offsetLeft) {
                 endGame();
